@@ -111,7 +111,16 @@ const AddExpense = () => {
         categoryId = Number(form.category_id);
       }
 
-      // Insert expense
+      // Get current user
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        throw new Error("You must be logged in to add expenses");
+      }
+
+      // Insert expense with user_id
       const { error } = await supabase.from("expenses").insert({
         amount: Number(form.amount),
         date: form.date,
@@ -119,6 +128,7 @@ const AddExpense = () => {
         description: form.description || null,
         category_id: categoryId,
         account_type: form.accountType,
+        user_id: user.id,
       });
 
       if (error) throw error;

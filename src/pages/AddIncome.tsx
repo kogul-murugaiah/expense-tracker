@@ -54,12 +54,22 @@ const AddIncome = () => {
     setLoading(true);
 
     try {
-      // Insert income
+      // Get current user
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        throw new Error("You must be logged in to add income");
+      }
+
+      // Insert income with user_id
       const { error } = await supabase.from("income").insert({
         amount: Number(form.amount),
         date: form.date,
         source: form.source,
         account_type: form.accountType,
+        user_id: user.id,
       });
 
       if (error) throw error;

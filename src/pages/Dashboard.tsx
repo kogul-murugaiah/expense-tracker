@@ -46,16 +46,28 @@ const Dashboard = () => {
       setError(null);
 
       try {
+        // Get current authenticated user
+        const {
+          data: { user },
+          error: userError,
+        } = await supabase.auth.getUser();
+
+        if (userError) throw userError;
+        if (!user) {
+          throw new Error("User not authenticated");
+        }
+
         // Calculate date range for current month
         const startDate = `${currentYear}-${String(currentMonth).padStart(2, "0")}-01`;
         const nextMonth = currentMonth === 12 ? 1 : currentMonth + 1;
         const nextYear = currentMonth === 12 ? currentYear + 1 : currentYear;
         const endDate = `${nextYear}-${String(nextMonth).padStart(2, "0")}-01`;
 
-        // Fetch income for current month
+        // Fetch income for current month - filtered by user_id
         const { data: incomeData, error: incomeError } = await supabase
           .from("income")
           .select("id, amount, date, account_type")
+          .eq("user_id", user.id)
           .gte("date", startDate)
           .lt("date", endDate);
 
