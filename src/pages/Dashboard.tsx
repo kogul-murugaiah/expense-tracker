@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 
 type Income = {
@@ -23,13 +23,20 @@ const formatter = new Intl.NumberFormat("en-IN", {
   maximumFractionDigits: 2,
 });
 
+const badgeStyles: Record<string, string> = {
+  SBI: "bg-blue-50 text-blue-700 border-blue-200",
+  CASH: "bg-amber-50 text-amber-700 border-amber-200",
+  UNION: "bg-purple-50 text-purple-700 border-purple-200",
+  INDIAN: "bg-teal-50 text-teal-700 border-teal-200",
+};
+
 const Dashboard = () => {
   const [income, setIncome] = useState<Income[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const now = new Date();
+  const now = useMemo(() => new Date(), []);
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth() + 1; // 1-12
 
@@ -118,126 +125,164 @@ const Dashboard = () => {
   const currentMonthName = monthNames[currentMonth - 1];
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      <h1 className="text-2xl font-semibold mb-6">
-        Dashboard - {currentMonthName} {currentYear}
-      </h1>
+    <div className="min-h-screen bg-slate-50 pb-24 md:pb-0">
+      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+        <header className="mb-8">
+          <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+            Overview
+          </p>
+          <h1 className="text-3xl font-bold text-slate-900">
+            Dashboard – {currentMonthName} {currentYear}
+          </h1>
+        </header>
 
-      {loading && (
-        <div className="py-10 text-center text-gray-500">
-          Loading data...
-        </div>
-      )}
-
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 mb-6">
-          {error}
-        </div>
-      )}
-
-      {!loading && !error && (
-        <>
-          {/* Overall Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            {/* Monthly Income Card */}
-            <div className="bg-white shadow rounded-xl p-6 text-center">
-              <div className="text-gray-600 mb-2 font-medium">
-                Monthly Income
-              </div>
-              <div className="text-3xl font-bold text-blue-600">
-                {formatter.format(monthlyIncome)}
-              </div>
-              {monthlyIncome === 0 && (
-                <div className="mt-3 text-xs text-gray-400">
-                  No income this month
-                </div>
-              )}
-            </div>
-
-            {/* Monthly Expenses Card */}
-            <div className="bg-white shadow rounded-xl p-6 text-center">
-              <div className="text-gray-600 mb-2 font-medium">
-                Monthly Expenses
-              </div>
-              <div className="text-3xl font-bold text-red-600">
-                {formatter.format(monthlyExpenses)}
-              </div>
-              {monthlyExpenses === 0 && (
-                <div className="mt-3 text-xs text-gray-400">
-                  No expenses this month
-                </div>
-              )}
-            </div>
-
-            {/* Monthly Balance Card */}
-            <div
-              className={`bg-white shadow rounded-xl p-6 text-center ${
-                monthlyBalance >= 0
-                  ? "border-2 border-green-200"
-                  : "border-2 border-red-200"
-              }`}
-            >
-              <div className="text-gray-600 mb-2 font-medium">
-                Monthly Balance
-              </div>
+        {loading && (
+          <div className="grid gap-4 md:grid-cols-3 mb-8">
+            {[...Array(3)].map((_, i) => (
               <div
-                className={`text-3xl font-bold ${
-                  monthlyBalance >= 0 ? "text-green-600" : "text-red-600"
+                key={i}
+                className="h-32 animate-pulse rounded-2xl bg-white shadow-sm ring-1 ring-slate-200"
+              />
+            ))}
+          </div>
+        )}
+
+        {error && (
+          <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-red-700">
+            {error}
+          </div>
+        )}
+
+        {!loading && !error && (
+          <>
+            {/* Overall Summary Cards */}
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3 mb-8">
+              {/* Monthly Income Card */}
+              <div className="rounded-2xl bg-gradient-to-br from-blue-600 to-blue-500 text-white shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl">
+                <div className="px-5 py-6">
+                  <p className="text-sm text-blue-100">Monthly Income</p>
+                  <div className="mt-2 text-4xl font-semibold">
+                    {formatter.format(monthlyIncome)}
+                  </div>
+                  {monthlyIncome === 0 && (
+                    <div className="mt-3 text-xs text-blue-100/80">
+                      No income this month
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Monthly Expenses Card */}
+              <div className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:shadow-md">
+                <div className="px-5 py-6">
+                  <p className="text-sm text-slate-500">Monthly Expenses</p>
+                  <div className="mt-2 text-4xl font-semibold text-red-600">
+                    {formatter.format(monthlyExpenses)}
+                  </div>
+                  {monthlyExpenses === 0 && (
+                    <div className="mt-3 text-xs text-slate-400">
+                      No expenses this month
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Monthly Balance Card */}
+              <div
+                className={`rounded-2xl shadow-sm ring-1 transition hover:-translate-y-0.5 hover:shadow-md ${
+                  monthlyBalance >= 0
+                    ? "bg-green-50 ring-green-100"
+                    : "bg-red-50 ring-red-100"
                 }`}
               >
-                {formatter.format(monthlyBalance)}
-              </div>
-              {monthlyBalance === 0 && (
-                <div className="mt-3 text-xs text-gray-400">
-                  Balanced this month
-                </div>
-              )}
-              {monthlyBalance > 0 && (
-                <div className="mt-3 text-xs text-green-600 font-medium">
-                  Surplus
-                </div>
-              )}
-              {monthlyBalance < 0 && (
-                <div className="mt-3 text-xs text-red-600 font-medium">
-                  Deficit
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Account-wise Balances */}
-          <div>
-            <h2 className="text-xl font-semibold mb-4">Account-wise Balance</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {accountBalances.map((account) => (
-                <div
-                  key={account.accountType}
-                  className={`bg-white shadow rounded-xl p-5 text-center ${
-                    account.balance >= 0
-                      ? "border-2 border-green-200"
-                      : "border-2 border-red-200"
-                  }`}
-                >
-                  <div className="text-gray-600 mb-1 font-medium text-sm">
-                    {account.accountType}
-                  </div>
+                <div className="px-5 py-6">
+                  <p className="text-sm text-slate-500">Monthly Balance</p>
                   <div
-                    className={`text-2xl font-bold ${
-                      account.balance >= 0 ? "text-green-600" : "text-red-600"
+                    className={`mt-2 text-4xl font-semibold ${
+                      monthlyBalance >= 0 ? "text-green-700" : "text-red-700"
                     }`}
                   >
-                    {formatter.format(account.balance)}
+                    {formatter.format(monthlyBalance)}
                   </div>
-                  <div className="mt-2 text-xs text-gray-500">
-                    <div>Income: {formatter.format(account.income)}</div>
-                    <div>Expenses: {formatter.format(account.expenses)}</div>
-                  </div>
+                  {monthlyBalance === 0 && (
+                    <div className="mt-3 text-xs text-slate-500">
+                      Balanced this month
+                    </div>
+                  )}
+                  {monthlyBalance > 0 && (
+                    <div className="mt-3 inline-flex rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700">
+                      Surplus
+                    </div>
+                  )}
+                  {monthlyBalance < 0 && (
+                    <div className="mt-3 inline-flex rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-700">
+                      Deficit
+                    </div>
+                  )}
                 </div>
-              ))}
+              </div>
             </div>
-          </div>
-        </>
-      )}
+
+            {/* Account-wise Balances */}
+            <section>
+              <div className="mb-4 flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+                    Accounts
+                  </p>
+                  <h2 className="text-xl font-semibold text-slate-900">
+                    Account-wise Balance
+                  </h2>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {accountBalances.map((account) => {
+                  const isPositive = account.balance >= 0;
+                  return (
+                    <div
+                      key={account.accountType}
+                      className={`rounded-2xl border bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${
+                        isPositive
+                          ? "border-green-100"
+                          : "border-red-100"
+                      }`}
+                    >
+                      <div
+                        className={`mb-2 inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${
+                          badgeStyles[account.accountType] || "border-slate-200 text-slate-700"
+                        }`}
+                      >
+                        {account.accountType}
+                      </div>
+                      <div
+                        className={`text-2xl font-bold ${
+                          isPositive ? "text-green-700" : "text-red-700"
+                        }`}
+                      >
+                        {formatter.format(account.balance)}
+                      </div>
+                      <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-slate-600">
+                        <div className="rounded-lg bg-slate-50 px-3 py-2">
+                          <p className="text-[11px] text-slate-500">Income</p>
+                          <p className="font-semibold text-slate-900">
+                            {formatter.format(account.income)}
+                          </p>
+                        </div>
+                        <div className="rounded-lg bg-slate-50 px-3 py-2">
+                          <p className="text-[11px] text-slate-500">Expenses</p>
+                          <p className="font-semibold text-slate-900">
+                            {formatter.format(account.expenses)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          </>
+        )}
+      </div>
     </div>
   );
 };

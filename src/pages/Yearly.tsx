@@ -165,185 +165,196 @@ const Yearly = () => {
   const grandTotal = expenses.reduce((sum, exp) => sum + exp.amount, 0);
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-        <h1 className="text-2xl font-semibold">Yearly Expenses</h1>
-        <input
-          type="number"
-          min="2000"
-          max="2100"
-          value={selectedYear}
-          onChange={(e) => setSelectedYear(e.target.value)}
-          className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 w-32"
-        />
-      </div>
-
-      {loading && (
-        <div className="py-10 text-center text-gray-500">
-          Loading expenses...
+    <div className="min-h-screen bg-slate-50 pb-24 md:pb-0">
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+              Insights
+            </p>
+            <h1 className="text-3xl font-bold text-slate-900">Yearly Expenses</h1>
+            <p className="text-sm text-slate-500">
+              Yearly view with month, category, and account breakdown.
+            </p>
+          </div>
+          <input
+            type="number"
+            min="2000"
+            max="2100"
+            value={selectedYear}
+            onChange={(e) => setSelectedYear(e.target.value)}
+            className="w-full max-w-[140px] rounded-lg border border-slate-200 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+          />
         </div>
-      )}
 
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
-          {error}
-        </div>
-      )}
+        {loading && (
+          <div className="grid gap-4 md:grid-cols-3">
+            {[...Array(3)].map((_, i) => (
+              <div
+                key={i}
+                className="h-24 animate-pulse rounded-2xl bg-white shadow-sm ring-1 ring-slate-200"
+              />
+            ))}
+          </div>
+        )}
 
-      {!loading && !error && (
-        <>
-          {expenses.length === 0 ? (
-            <div className="bg-white shadow rounded-xl p-8 text-center">
-              <p className="text-gray-500">
-                No expenses found for {selectedYear}
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {/* Grand Total Card */}
-              <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg rounded-xl p-6">
-                <div className="text-blue-100 mb-2 font-medium">
-                  Total Expenses for {selectedYear}
-                </div>
-                <div className="text-4xl font-bold">
-                  {formatter.format(grandTotal)}
-                </div>
+        {error && (
+          <div className="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-red-700">
+            {error}
+          </div>
+        )}
+
+        {!loading && !error && (
+          <>
+            {expenses.length === 0 ? (
+              <div className="rounded-2xl bg-white p-10 text-center shadow-sm ring-1 ring-slate-200">
+                <p className="text-slate-500">No expenses found for {selectedYear}</p>
               </div>
-
-              {/* Month-wise Totals */}
-              <div className="bg-white shadow rounded-xl overflow-hidden">
-                <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
-                  <h2 className="text-lg font-semibold text-gray-900">
-                    Month-wise Totals
-                  </h2>
-                </div>
-                <div className="divide-y divide-gray-200">
-                  {monthTotals.length === 0 ? (
-                    <div className="px-6 py-8 text-center text-gray-500">
-                      No monthly data available
+            ) : (
+              <div className="space-y-6">
+                {/* Grand Total Card */}
+                <div className="rounded-2xl bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg">
+                  <div className="px-6 py-6 sm:px-8">
+                    <p className="text-sm text-blue-100">Total Expenses for {selectedYear}</p>
+                    <div className="mt-2 text-4xl font-semibold">
+                      {formatter.format(grandTotal)}
                     </div>
-                  ) : (
-                    monthTotals.map((mt) => {
-                      const percentage =
-                        grandTotal > 0
-                          ? ((mt.total / grandTotal) * 100).toFixed(1)
-                          : "0.0";
-                      return (
-                        <div
-                          key={mt.month}
-                          className="px-6 py-4 hover:bg-gray-50 transition-colors"
-                        >
-                          <div className="flex justify-between items-center">
-                            <div>
-                              <div className="font-medium text-gray-900">
-                                {mt.monthName}
+                  </div>
+                </div>
+
+                {/* Month-wise Totals */}
+                <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
+                  <div className="border-b border-slate-100 bg-slate-50 px-6 py-4">
+                    <h2 className="text-lg font-semibold text-slate-900">
+                      Month-wise Totals
+                    </h2>
+                  </div>
+                  <div className="divide-y divide-slate-100">
+                    {monthTotals.length === 0 ? (
+                      <div className="px-6 py-8 text-center text-slate-500">
+                        No monthly data available
+                      </div>
+                    ) : (
+                      monthTotals.map((mt) => {
+                        const percentage =
+                          grandTotal > 0 ? ((mt.total / grandTotal) * 100).toFixed(1) : "0.0";
+                        return (
+                          <div
+                            key={mt.month}
+                            className="px-6 py-4 transition hover:bg-slate-50"
+                          >
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <div className="text-sm font-semibold text-slate-900">
+                                  {mt.monthName}
+                                </div>
+                                <div className="text-xs text-slate-500">
+                                  {percentage}% of total
+                                </div>
                               </div>
-                              <div className="text-sm text-gray-500">
-                                {percentage}% of total
+                              <div className="text-lg font-semibold text-slate-900">
+                                {formatter.format(mt.total)}
                               </div>
-                            </div>
-                            <div className="text-lg font-semibold text-gray-900">
-                              {formatter.format(mt.total)}
                             </div>
                           </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                  {/* Category Totals */}
+                  <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
+                    <div className="border-b border-slate-100 bg-slate-50 px-6 py-4">
+                      <h2 className="text-lg font-semibold text-slate-900">
+                        Category-wise Totals
+                      </h2>
+                    </div>
+                    <div className="divide-y divide-slate-100">
+                      {categoryTotals.length === 0 ? (
+                        <div className="px-6 py-8 text-center text-slate-500">
+                          No category data available
                         </div>
-                      );
-                    })
-                  )}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Category Totals */}
-                <div className="bg-white shadow rounded-xl overflow-hidden">
-                  <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
-                    <h2 className="text-lg font-semibold text-gray-900">
-                      Category-wise Totals
-                    </h2>
-                  </div>
-                  <div className="divide-y divide-gray-200">
-                    {categoryTotals.length === 0 ? (
-                      <div className="px-6 py-8 text-center text-gray-500">
-                        No category data available
-                      </div>
-                    ) : (
-                      categoryTotals.map((cat) => {
-                        const percentage =
-                          grandTotal > 0
-                            ? ((cat.total / grandTotal) * 100).toFixed(1)
-                            : "0.0";
-                        return (
-                          <div
-                            key={cat.categoryId}
-                            className="px-6 py-4 hover:bg-gray-50 transition-colors"
-                          >
-                            <div className="flex justify-between items-center">
-                              <div>
-                                <div className="font-medium text-gray-900">
-                                  {cat.categoryName}
+                      ) : (
+                        categoryTotals.map((cat) => {
+                          const percentage =
+                            grandTotal > 0
+                              ? ((cat.total / grandTotal) * 100).toFixed(1)
+                              : "0.0";
+                          return (
+                            <div
+                              key={cat.categoryId}
+                              className="px-6 py-4 transition hover:bg-slate-50"
+                            >
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <div className="text-sm font-semibold text-slate-900">
+                                    {cat.categoryName}
+                                  </div>
+                                  <div className="text-xs text-slate-500">
+                                    {percentage}% of total
+                                  </div>
                                 </div>
-                                <div className="text-sm text-gray-500">
-                                  {percentage}% of total
+                                <div className="text-lg font-semibold text-slate-900">
+                                  {formatter.format(cat.total)}
                                 </div>
-                              </div>
-                              <div className="text-lg font-semibold text-gray-900">
-                                {formatter.format(cat.total)}
                               </div>
                             </div>
-                          </div>
-                        );
-                      })
-                    )}
+                          );
+                        })
+                      )}
+                    </div>
                   </div>
-                </div>
 
-                {/* Account Type Totals */}
-                <div className="bg-white shadow rounded-xl overflow-hidden">
-                  <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
-                    <h2 className="text-lg font-semibold text-gray-900">
-                      Account-type Totals
-                    </h2>
-                  </div>
-                  <div className="divide-y divide-gray-200">
-                    {accountTotals.length === 0 ? (
-                      <div className="px-6 py-8 text-center text-gray-500">
-                        No account data available
-                      </div>
-                    ) : (
-                      accountTotals.map((acc) => {
-                        const percentage =
-                          grandTotal > 0
-                            ? ((acc.total / grandTotal) * 100).toFixed(1)
-                            : "0.0";
-                        return (
-                          <div
-                            key={acc.accountType}
-                            className="px-6 py-4 hover:bg-gray-50 transition-colors"
-                          >
-                            <div className="flex justify-between items-center">
-                              <div>
-                                <div className="font-medium text-gray-900">
-                                  {acc.accountType}
+                  {/* Account Type Totals */}
+                  <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
+                    <div className="border-b border-slate-100 bg-slate-50 px-6 py-4">
+                      <h2 className="text-lg font-semibold text-slate-900">
+                        Account-type Totals
+                      </h2>
+                    </div>
+                    <div className="divide-y divide-slate-100">
+                      {accountTotals.length === 0 ? (
+                        <div className="px-6 py-8 text-center text-slate-500">
+                          No account data available
+                        </div>
+                      ) : (
+                        accountTotals.map((acc) => {
+                          const percentage =
+                            grandTotal > 0
+                              ? ((acc.total / grandTotal) * 100).toFixed(1)
+                              : "0.0";
+                          return (
+                            <div
+                              key={acc.accountType}
+                              className="px-6 py-4 transition hover:bg-slate-50"
+                            >
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <div className="text-sm font-semibold text-slate-900">
+                                    {acc.accountType}
+                                  </div>
+                                  <div className="text-xs text-slate-500">
+                                    {percentage}% of total
+                                  </div>
                                 </div>
-                                <div className="text-sm text-gray-500">
-                                  {percentage}% of total
+                                <div className="text-lg font-semibold text-slate-900">
+                                  {formatter.format(acc.total)}
                                 </div>
-                              </div>
-                              <div className="text-lg font-semibold text-gray-900">
-                                {formatter.format(acc.total)}
                               </div>
                             </div>
-                          </div>
-                        );
-                      })
-                    )}
+                          );
+                        })
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
-        </>
-      )}
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 };

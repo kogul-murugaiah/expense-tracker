@@ -77,86 +77,107 @@ const AddIncome = () => {
   };
 
   return (
-    <div className="p-6 max-w-lg mx-auto">
-      <h1 className="text-2xl font-semibold mb-6">Add Income</h1>
+    <div className="min-h-screen bg-slate-50 pb-24 md:pb-0">
+      <div className="mx-auto flex max-w-3xl flex-col gap-6 px-4 py-10 sm:px-6 lg:px-8">
+        <header className="space-y-2">
+          <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+            Income
+          </p>
+          <h1 className="text-3xl font-bold text-slate-900">Add Income</h1>
+          <p className="text-sm text-slate-500">
+            Log your monthly income with a clean, guided form.
+          </p>
+        </header>
 
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-6 rounded-xl shadow space-y-4"
-      >
-        <input
-          type="number"
-          name="amount"
-          placeholder="Amount (₹)"
-          value={form.amount}
-          onChange={handleChange}
-          className="w-full border border-gray-300 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          required
-          min="0"
-          step="0.01"
-        />
-
-        <div>
-          <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-1">
-            Date
-          </label>
-          <input
-            type="date"
-            id="date"
-            name="date"
-            value={form.date}
-            onChange={handleChange}
-            className="w-full border border-gray-300 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
-        </div>
-
-        <select
-          name="source"
-          value={form.source}
-          onChange={handleChange}
-          className="w-full border border-gray-300 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        <form
+          onSubmit={handleSubmit}
+          className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 space-y-6"
         >
-          {INCOME_SOURCES.map((source) => (
-            <option key={source.value} value={source.value}>
-              {source.label}
-            </option>
-          ))}
-        </select>
-
-        <select
-          name="accountType"
-          value={form.accountType}
-          onChange={handleChange}
-          className="w-full border border-gray-300 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          {ACCOUNT_TYPES.map((account) => (
-            <option key={account.value} value={account.value}>
-              {account.label}
-            </option>
-          ))}
-        </select>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 text-sm">
-            {error}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-slate-700">Amount (₹)</label>
+              <input
+                type="number"
+                name="amount"
+                placeholder="Enter amount"
+                value={form.amount}
+                onChange={handleChange}
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                required
+                min="0"
+                step="0.01"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-slate-700">Date</label>
+              <input
+                type="date"
+                id="date"
+                name="date"
+                value={form.date}
+                onChange={handleChange}
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                required
+              />
+            </div>
           </div>
-        )}
 
-        {success && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-green-700 text-sm">
-            {success}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-slate-700">Source</label>
+              <select
+                name="source"
+                value={form.source}
+                onChange={handleChange}
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              >
+                {INCOME_SOURCES.map((source) => (
+                  <option key={source.value} value={source.value}>
+                    {source.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-slate-700">Account Type</label>
+              <select
+                name="accountType"
+                value={form.accountType}
+                onChange={handleChange}
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              >
+                {ACCOUNT_TYPES.map((account) => (
+                  <option key={account.value} value={account.value}>
+                    {account.label}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
-        )}
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed font-medium transition-colors"
-        >
-          {loading ? "Saving..." : "Add Income"}
-        </button>
-      </form>
+          {error && (
+            <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+              {error}
+            </div>
+          )}
+
+          {success && (
+            <div className="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
+              {success}
+            </div>
+          )}
+
+          <div className="pt-2">
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {loading ? "Saving..." : "Add Income"}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };
