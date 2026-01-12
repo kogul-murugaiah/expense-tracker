@@ -1,10 +1,7 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { supabase } from "../lib/supabaseClient";
-
-type Category = {
-  id: number;
-  name: string;
-};
+import { useExpenseCategories } from "../hooks/useExpenseCategories";
+import { CustomDropdown } from "../components/CustomDropdown";
 
 const ACCOUNT_TYPES = [
   { label: "INDIAN", value: "INDIAN" },
@@ -19,7 +16,6 @@ const initialForm = {
   item: "",
   description: "",
   category_id: "",
-  newCategory: "",
   accountType: ACCOUNT_TYPES[0].value,
 };
 
@@ -31,49 +27,25 @@ const AddExpense = () => {
       date: today,
     };
   });
-  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
-  const [catLoading, setCatLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  // Fetch categories
-  useEffect(() => {
-    const fetchCategories = async () => {
-      setCatLoading(true);
-      const { data, error } = await supabase
-        .from("categories")
-        .select("*")
-        .order("name");
-
-      if (error) {
-        setError("Failed to load categories");
-      } else {
-        setCategories(data || []);
-      }
-      setCatLoading(false);
-    };
-
-    fetchCategories();
-  }, []);
+  const { categories, loading: categoriesLoading, addCategory } = useExpenseCategories();
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
-
-    if (name === "category_id") {
-      setForm((prev) => ({ ...prev, newCategory: "" }));
-    }
   };
 
-  const handleNewCategory = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm((prev) => ({
-      ...prev,
-      newCategory: e.target.value,
-      category_id: "",
-    }));
+  const handleAddCategory = async (name: string) => {
+    try {
+      await addCategory(name);
+    } catch (err: any) {
+      throw err;
+    }
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -86,31 +58,14 @@ const AddExpense = () => {
       return;
     }
 
-    if (!form.category_id && !form.newCategory.trim()) {
-      setError("Select or add a category");
+    if (!form.category_id) {
+      setError("Please select a category");
       return;
     }
 
     setLoading(true);
 
     try {
-      let categoryId: number;
-
-      // Insert new category if needed
-      if (form.newCategory.trim()) {
-        const { data, error } = await supabase
-          .from("categories")
-          .insert({ name: form.newCategory.trim() })
-          .select()
-          .single();
-
-        if (error || !data) throw new Error("Category creation failed");
-        categoryId = data.id;
-        setCategories((prev) => [...prev, data]);
-      } else {
-        categoryId = Number(form.category_id);
-      }
-
       // Get current user
       const {
         data: { user },
@@ -126,7 +81,7 @@ const AddExpense = () => {
         date: form.date,
         item: form.item || null,
         description: form.description || null,
-        category_id: categoryId,
+        category_id: form.category_id,
         account_type: form.accountType,
         user_id: user.id,
       });
@@ -146,145 +101,193 @@ const AddExpense = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-24 md:pb-0">
-      <div className="mx-auto flex max-w-3xl flex-col gap-6 px-4 py-10 sm:px-6 lg:px-8">
-        <header className="space-y-2">
-          <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-            Spending
+    <div className="min-h-screen bg-slate-900 pb-24 md:pb-0">
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <header className="mb-6">
+          <p className="text-sm font-semibold uppercase tracking-wide text-slate-400">
+            New Record
           </p>
-          <h1 className="text-3xl font-bold text-slate-900">Add Expense</h1>
-          <p className="text-sm text-slate-500">
-            Track your daily spending with a clean, guided form.
+          <h1 className="text-3xl font-bold text-slate-100">Enter Expense</h1>
+          <p className="text-sm text-slate-400">
+            Fill in the details below to record a new expense.
           </p>
         </header>
 
+        {error && (
+          <div className="mb-4 rounded-2xl border border-red-600/30 bg-red-900/50 px-4 py-3 text-red-300">
+            {error}
+          </div>
+        )}
+
+        {success && (
+          <div className="mb-4 rounded-2xl border border-green-600/30 bg-green-900/50 px-4 py-3 text-green-300">
+            {success}
+          </div>
+        )}
+
         <form
           onSubmit={handleSubmit}
-          className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 space-y-6"
+          className="rounded-2xl bg-slate-800 p-6 shadow-sm ring-1 ring-slate-700 space-y-6"
         >
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-slate-700">Amount (₹)</label>
-              <input
-                type="number"
-                name="amount"
-                placeholder="Enter amount"
-                value={form.amount}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                required
-                min="0"
-                step="0.01"
-              />
+              <label
+                htmlFor="item"
+                className="block text-sm font-medium leading-6 text-slate-200"
+              >
+                Item Name
+              </label>
+              <div className="mt-2">
+                <input
+                  type="text"
+                  name="item"
+                  id="item"
+                  value={form.item}
+                  onChange={handleChange}
+                  className="block w-full rounded-xl border-0 bg-slate-700/50 px-4 py-3 text-slate-200 shadow-sm ring-1 ring-inset ring-slate-700 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
+                  placeholder="e.g., Groceries, Dinner, Rent"
+                  required
+                />
+              </div>
             </div>
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-slate-700">Date</label>
-              <input
-                type="date"
-                name="date"
-                value={form.date}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                required
-              />
-            </div>
-          </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-slate-700">Item</label>
-              <input
-                type="text"
-                name="item"
-                placeholder="e.g., Grocery, Fuel"
-                value={form.item}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-slate-700">Description (optional)</label>
-              <input
-                type="text"
-                name="description"
-                placeholder="Add a note"
-                value={form.description}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-              />
-            </div>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-slate-700">Category</label>
-              {catLoading ? (
-                <div className="rounded-lg border border-dashed border-slate-200 px-3 py-2 text-sm text-slate-400">
-                  Loading categories...
+            <div>
+              <label
+                htmlFor="amount"
+                className="block text-sm font-medium leading-6 text-slate-200"
+              >
+                Amount
+              </label>
+              <div className="relative mt-2 rounded-xl shadow-sm">
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                  <span className="text-slate-400 sm:text-sm">₹</span>
                 </div>
-              ) : (
-                <div className="space-y-2">
-                  <select
-                    name="category_id"
-                    value={form.category_id}
+                <input
+                  type="number"
+                  name="amount"
+                  id="amount"
+                  value={form.amount}
+                  onChange={handleChange}
+                  className="block w-full rounded-xl border-0 bg-slate-700/50 py-3 pl-10 text-slate-200 ring-1 ring-inset ring-slate-700 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
+                  placeholder="0.00"
+                  step="0.01"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2 mt-3">
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="date"
+                  className="block text-sm font-medium leading-6 text-slate-200"
+                >
+                  Date
+                </label>
+                <div className="mt-2">
+                  <input
+                    type="date"
+                    name="date"
+                    id="date"
+                    value={form.date}
                     onChange={handleChange}
-                    disabled={!!form.newCategory}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:cursor-not-allowed disabled:bg-slate-50"
+                    className="block w-full rounded-xl border-0 bg-slate-700/50 px-4 py-3 text-slate-200 shadow-sm ring-1 ring-inset ring-slate-700 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
+                    required
+                  />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="accountType"
+                  className="block text-sm font-medium leading-6 text-slate-200"
+                >
+                  Account Type
+                </label>
+                <div className="mt-2">
+                  <select
+                    name="accountType"
+                    id="accountType"
+                    value={form.accountType}
+                    onChange={handleChange}
+                    className="block w-full rounded-xl border-0 bg-slate-700/50 px-4 py-3 text-slate-200 shadow-sm ring-1 ring-inset ring-slate-700 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
                   >
-                    <option value="">Select category</option>
-                    {categories.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name}
+                    {ACCOUNT_TYPES.map((acc) => (
+                      <option key={acc.value} value={acc.value}>
+                        {acc.label}
                       </option>
                     ))}
                   </select>
-                  <input
-                    type="text"
-                    placeholder="Or add new category"
-                    value={form.newCategory}
-                    onChange={handleNewCategory}
-                    disabled={!!form.category_id}
-                    className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 disabled:cursor-not-allowed disabled:bg-slate-50"
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-3">
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="category_id"
+                  className="block text-sm font-medium leading-6 text-slate-200"
+                >
+                  Category
+                </label>
+                <div className="mt-2">
+                  <CustomDropdown
+                    value={form.category_id}
+                    onChange={(value) => setForm(prev => ({ ...prev, category_id: value }))}
+                    options={categories.map(cat => ({ value: cat.id, label: cat.name }))}
+                    placeholder="Select a category"
+                    onAddNew={handleAddCategory}
+                    addNewLabel="+ Add new category"
+                    disabled={categoriesLoading}
                   />
                 </div>
-              )}
+              </div>
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="description"
+                  className="block text-sm font-medium leading-6 text-slate-200"
+                >
+                  Description
+                </label>
+                <div className="mt-2">
+                  <input
+                    type="text"
+                    name="description"
+                    id="description"
+                    value={form.description}
+                    onChange={handleChange}
+                    className="block w-full rounded-xl border-0 bg-slate-700/50 px-4 py-3 text-slate-200 shadow-sm ring-1 ring-inset ring-slate-700 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
+                    placeholder="Optional details about this expense"
+                  />
+                </div>
+              </div>
             </div>
 
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-slate-700">Account Type</label>
-              <select
-                name="accountType"
-                value={form.accountType}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+            {error && (
+              <div className="mt-3 rounded-lg border border-red-600/30 bg-red-900/50 px-3 py-2 text-sm text-red-300">
+                {error}
+              </div>
+            )}
+
+            <div className="mt-6 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setForm(initialForm);
+                  setError("");
+                  setSuccess("");
+                }}
+                className="rounded-lg border border-slate-600 px-4 py-2 text-sm font-semibold text-slate-300 hover:bg-slate-700/50"
               >
-                {ACCOUNT_TYPES.map((a) => (
-                  <option key={a.value} value={a.value}>
-                    {a.label}
-                  </option>
-                ))}
-              </select>
+                Clear
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="rounded-lg bg-blue-600 px-6 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {loading ? "Saving..." : "Save Expense"}
+              </button>
             </div>
-          </div>
-
-          {error && (
-            <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-              {error}
-            </div>
-          )}
-          {success && (
-            <div className="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
-              {success}
-            </div>
-          )}
-
-          <div className="pt-2">
-            <button
-              disabled={loading}
-              className="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {loading ? "Saving..." : "Add Expense"}
-            </button>
           </div>
         </form>
       </div>

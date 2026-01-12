@@ -165,15 +165,15 @@ const Yearly = () => {
   const grandTotal = expenses.reduce((sum, exp) => sum + exp.amount, 0);
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-24 md:pb-0">
+    <div className="min-h-screen bg-slate-900 pb-24 md:pb-0">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+            <p className="text-sm font-semibold uppercase tracking-wide text-slate-400">
               Insights
             </p>
-            <h1 className="text-3xl font-bold text-slate-900">Yearly Expenses</h1>
-            <p className="text-sm text-slate-500">
+            <h1 className="text-3xl font-bold text-slate-100">Yearly Expenses</h1>
+            <p className="text-sm text-slate-400">
               Yearly view with month, category, and account breakdown.
             </p>
           </div>
@@ -183,7 +183,7 @@ const Yearly = () => {
             max="2100"
             value={selectedYear}
             onChange={(e) => setSelectedYear(e.target.value)}
-            className="w-full max-w-[140px] rounded-lg border border-slate-200 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+            className="w-full max-w-[140px] rounded-lg border border-slate-600 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
           />
         </div>
 
@@ -192,14 +192,14 @@ const Yearly = () => {
             {[...Array(3)].map((_, i) => (
               <div
                 key={i}
-                className="h-24 animate-pulse rounded-2xl bg-white shadow-sm ring-1 ring-slate-200"
+                className="h-24 animate-pulse rounded-2xl bg-slate-800 shadow-sm ring-1 ring-slate-700"
               />
             ))}
           </div>
         )}
 
         {error && (
-          <div className="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-red-700">
+          <div className="mb-4 rounded-2xl border border-red-600/30 bg-red-900/50 px-4 py-3 text-red-300">
             {error}
           </div>
         )}
@@ -207,8 +207,8 @@ const Yearly = () => {
         {!loading && !error && (
           <>
             {expenses.length === 0 ? (
-              <div className="rounded-2xl bg-white p-10 text-center shadow-sm ring-1 ring-slate-200">
-                <p className="text-slate-500">No expenses found for {selectedYear}</p>
+              <div className="rounded-2xl bg-slate-800 p-10 text-center shadow-sm ring-1 ring-slate-700">
+                <p className="text-slate-400">No expenses found for {selectedYear}</p>
               </div>
             ) : (
               <div className="space-y-6">
@@ -223,15 +223,13 @@ const Yearly = () => {
                 </div>
 
                 {/* Month-wise Totals */}
-                <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
-                  <div className="border-b border-slate-100 bg-slate-50 px-6 py-4">
-                    <h2 className="text-lg font-semibold text-slate-900">
-                      Month-wise Totals
-                    </h2>
+                <div className="overflow-hidden rounded-2xl bg-slate-800 shadow-sm ring-1 ring-slate-700">
+                  <div className="border-b border-slate-600 bg-slate-700 px-6 py-4">
+                    <h2 className="text-lg font-semibold text-slate-100">Month-wise Totals</h2>
                   </div>
-                  <div className="divide-y divide-slate-100">
+                  <div className="divide-y divide-slate-600">
                     {monthTotals.length === 0 ? (
-                      <div className="px-6 py-8 text-center text-slate-500">
+                      <div className="px-6 py-8 text-center text-slate-400">
                         No monthly data available
                       </div>
                     ) : (
@@ -241,18 +239,18 @@ const Yearly = () => {
                         return (
                           <div
                             key={mt.month}
-                            className="px-6 py-4 transition hover:bg-slate-50"
+                            className="px-6 py-4 transition hover:bg-slate-700"
                           >
                             <div className="flex items-center justify-between">
                               <div>
-                                <div className="text-sm font-semibold text-slate-900">
+                                <div className="text-sm font-semibold text-slate-100">
                                   {mt.monthName}
                                 </div>
-                                <div className="text-xs text-slate-500">
+                                <div className="text-xs text-slate-400">
                                   {percentage}% of total
                                 </div>
                               </div>
-                              <div className="text-lg font-semibold text-slate-900">
+                              <div className="text-lg font-semibold text-slate-100">
                                 {formatter.format(mt.total)}
                               </div>
                             </div>
@@ -265,15 +263,13 @@ const Yearly = () => {
 
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                   {/* Category Totals */}
-                  <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
-                    <div className="border-b border-slate-100 bg-slate-50 px-6 py-4">
-                      <h2 className="text-lg font-semibold text-slate-900">
-                        Category-wise Totals
-                      </h2>
+                  <div className="overflow-hidden rounded-2xl bg-slate-800 shadow-sm ring-1 ring-slate-700">
+                    <div className="border-b border-slate-600 bg-slate-700 px-6 py-4">
+                      <h2 className="text-lg font-semibold text-slate-100">Category-wise Totals</h2>
                     </div>
-                    <div className="divide-y divide-slate-100">
+                    <div className="divide-y divide-slate-600">
                       {categoryTotals.length === 0 ? (
-                        <div className="px-6 py-8 text-center text-slate-500">
+                        <div className="px-6 py-8 text-center text-slate-400">
                           No category data available
                         </div>
                       ) : (
@@ -285,18 +281,18 @@ const Yearly = () => {
                           return (
                             <div
                               key={cat.categoryId}
-                              className="px-6 py-4 transition hover:bg-slate-50"
+                              className="px-6 py-4 transition hover:bg-slate-700"
                             >
                               <div className="flex items-center justify-between">
                                 <div>
-                                  <div className="text-sm font-semibold text-slate-900">
+                                  <div className="text-sm font-semibold text-slate-100">
                                     {cat.categoryName}
                                   </div>
-                                  <div className="text-xs text-slate-500">
+                                  <div className="text-xs text-slate-400">
                                     {percentage}% of total
                                   </div>
                                 </div>
-                                <div className="text-lg font-semibold text-slate-900">
+                                <div className="text-lg font-semibold text-slate-100">
                                   {formatter.format(cat.total)}
                                 </div>
                               </div>
@@ -308,15 +304,13 @@ const Yearly = () => {
                   </div>
 
                   {/* Account Type Totals */}
-                  <div className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
-                    <div className="border-b border-slate-100 bg-slate-50 px-6 py-4">
-                      <h2 className="text-lg font-semibold text-slate-900">
-                        Account-type Totals
-                      </h2>
+                  <div className="overflow-hidden rounded-2xl bg-slate-800 shadow-sm ring-1 ring-slate-700">
+                    <div className="border-b border-slate-600 bg-slate-700 px-6 py-4">
+                      <h2 className="text-lg font-semibold text-slate-100">Account-type Totals</h2>
                     </div>
-                    <div className="divide-y divide-slate-100">
+                    <div className="divide-y divide-slate-600">
                       {accountTotals.length === 0 ? (
-                        <div className="px-6 py-8 text-center text-slate-500">
+                        <div className="px-6 py-8 text-center text-slate-400">
                           No account data available
                         </div>
                       ) : (
@@ -328,18 +322,18 @@ const Yearly = () => {
                           return (
                             <div
                               key={acc.accountType}
-                              className="px-6 py-4 transition hover:bg-slate-50"
+                              className="px-6 py-4 transition hover:bg-slate-700"
                             >
                               <div className="flex items-center justify-between">
                                 <div>
-                                  <div className="text-sm font-semibold text-slate-900">
+                                  <div className="text-sm font-semibold text-slate-100">
                                     {acc.accountType}
                                   </div>
-                                  <div className="text-xs text-slate-500">
+                                  <div className="text-xs text-slate-400">
                                     {percentage}% of total
                                   </div>
                                 </div>
-                                <div className="text-lg font-semibold text-slate-900">
+                                <div className="text-lg font-semibold text-slate-100">
                                   {formatter.format(acc.total)}
                                 </div>
                               </div>

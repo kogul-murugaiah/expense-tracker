@@ -41,10 +41,10 @@ const formatter = new Intl.NumberFormat("en-IN", {
 });
 
 const accountBadge: Record<string, string> = {
-  INDIAN: "bg-teal-50 text-teal-700 border-teal-200",
-  SBI: "bg-blue-50 text-blue-700 border-blue-200",
-  UNION: "bg-purple-50 text-purple-700 border-purple-200",
-  CASH: "bg-amber-50 text-amber-700 border-amber-200",
+  INDIAN: "bg-teal-900/50 text-teal-300 border-teal-700/50",
+  SBI: "bg-blue-900/50 text-blue-300 border-blue-700/50",
+  UNION: "bg-purple-900/50 text-purple-300 border-purple-700/50",
+  CASH: "bg-amber-900/50 text-amber-300 border-amber-700/50",
 };
 
 const Expenses = () => {
@@ -233,20 +233,20 @@ const Expenses = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-24 md:pb-0">
+    <div className="min-h-screen bg-slate-900 pb-24 md:pb-0">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <header className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+            <p className="text-sm font-semibold uppercase tracking-wide text-slate-400">
               Records
             </p>
-            <h1 className="text-3xl font-bold text-slate-900">Manage Expenses</h1>
-            <p className="text-sm text-slate-500">
+            <h1 className="text-3xl font-bold text-slate-100">Manage Expenses</h1>
+            <p className="text-sm text-slate-400">
               View and update your expenses with inline editing.
             </p>
           </div>
-          <div className="flex gap-2 text-xs text-slate-500">
-            <span className="rounded-full bg-slate-100 px-3 py-1">
+          <div className="flex gap-2 text-xs text-slate-400">
+            <span className="rounded-full bg-slate-700 px-3 py-1">
               {expenses.length} records
             </span>
           </div>
@@ -257,30 +257,30 @@ const Expenses = () => {
             {[...Array(4)].map((_, i) => (
               <div
                 key={i}
-                className="h-16 animate-pulse rounded-xl bg-white shadow-sm ring-1 ring-slate-200"
+                className="h-16 animate-pulse rounded-xl bg-slate-800 shadow-sm ring-1 ring-slate-700"
               />
             ))}
           </div>
         )}
 
         {error && !saving && (
-          <div className="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-red-700">
+          <div className="mb-4 rounded-2xl border border-red-600/30 bg-red-900/50 px-4 py-3 text-red-300">
             {error}
           </div>
         )}
 
         {success && (
-          <div className="mb-4 rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-green-700">
+          <div className="mb-4 rounded-2xl border border-green-600/30 bg-green-900/50 px-4 py-3 text-green-300">
             {success}
           </div>
         )}
 
         {!loading && (
-          <div className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
+          <div className="rounded-2xl bg-slate-800 shadow-sm ring-1 ring-slate-700">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-slate-50">
-                  <tr className="text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <thead className="bg-slate-700">
+                  <tr className="text-left text-xs font-semibold uppercase tracking-wide text-slate-300">
                     <th className="px-6 py-3">Date</th>
                     <th className="px-6 py-3">Item</th>
                     <th className="px-6 py-3">Description</th>
@@ -290,55 +290,55 @@ const Expenses = () => {
                     <th className="px-6 py-3 text-center">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 bg-white">
+                <tbody className="divide-y divide-slate-600 bg-slate-800">
                   {expenses.length === 0 ? (
                     <tr>
                       <td
                         colSpan={7}
-                        className="px-6 py-10 text-center text-sm text-slate-500"
+                        className="px-6 py-10 text-center text-sm text-slate-400"
                       >
                         No expenses found. Add your first expense to get started.
                       </td>
                     </tr>
                   ) : (
                     expenses.map((expense) => (
-                      <tr key={expense.id} className="hover:bg-slate-50 transition">
-                        <td className="px-6 py-4 text-sm text-slate-700">
+                      <tr key={expense.id} className="hover:bg-slate-700 transition">
+                        <td className="px-6 py-4 text-sm text-slate-300">
                           {new Date(expense.date).toLocaleDateString("en-IN")}
                         </td>
-                        <td className="px-6 py-4 text-sm font-semibold text-slate-900">
+                        <td className="px-6 py-4 text-sm font-semibold text-slate-100">
                           {expense.item}
                         </td>
-                        <td className="px-6 py-4 text-sm text-slate-600">
+                        <td className="px-6 py-4 text-sm text-slate-400">
                           {expense.description || "-"}
                         </td>
-                        <td className="px-6 py-4 text-sm text-slate-700">
+                        <td className="px-6 py-4 text-sm text-slate-300">
                           {expense.categories ? (
-                            <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700">
+                            <span className="inline-flex items-center rounded-full bg-slate-700 px-3 py-1 text-xs font-medium text-slate-300">
                               {expense.categories.name}
                             </span>
                           ) : (
-                            <span className="text-slate-400">-</span>
+                            <span className="text-slate-500">-</span>
                           )}
                         </td>
                         <td className="px-6 py-4 text-sm">
                           <span
                             className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${
                               accountBadge[expense.account_type] ||
-                              "border-slate-200 text-slate-700"
+                              "border-slate-600 text-slate-300"
                             }`}
                           >
                             {expense.account_type}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-right text-sm font-semibold text-red-600">
+                        <td className="px-6 py-4 text-right text-sm font-semibold text-red-400">
                           {formatter.format(expense.amount)}
                         </td>
                         <td className="px-6 py-4 text-center">
                           <button
                             onClick={() => handleEdit(expense)}
                             disabled={editingId !== null}
-                            className="inline-flex items-center gap-1 rounded-full bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
+                            className="inline-flex items-center gap-1 rounded-full bg-slate-700 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
                           >
                             Edit
                           </button>

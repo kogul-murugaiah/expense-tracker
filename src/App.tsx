@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
+import MobileBottomNav from './components/MobileBottomNav';
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
@@ -21,6 +22,7 @@ function App() {
           element={
             <ProtectedRoute>
               <Navbar />
+              <MobileBottomNav />
               <Routes>
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/add" element={<AddExpense />} />

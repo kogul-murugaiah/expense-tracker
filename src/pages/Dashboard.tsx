@@ -24,10 +24,10 @@ const formatter = new Intl.NumberFormat("en-IN", {
 });
 
 const badgeStyles: Record<string, string> = {
-  SBI: "bg-blue-50 text-blue-700 border-blue-200",
-  CASH: "bg-amber-50 text-amber-700 border-amber-200",
-  UNION: "bg-purple-50 text-purple-700 border-purple-200",
-  INDIAN: "bg-teal-50 text-teal-700 border-teal-200",
+  SBI: "bg-blue-900/50 text-blue-300 border-blue-700/50",
+  CASH: "bg-amber-900/50 text-amber-300 border-amber-700/50",
+  UNION: "bg-purple-900/50 text-purple-300 border-purple-700/50",
+  INDIAN: "bg-teal-900/50 text-teal-300 border-teal-700/50",
 };
 
 const Dashboard = () => {
@@ -137,15 +137,17 @@ const Dashboard = () => {
   const currentMonthName = monthNames[currentMonth - 1];
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-24 md:pb-0">
+    <div className="min-h-screen bg-slate-900 pb-24 md:pb-0">
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
         <header className="mb-8">
-          <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-            Overview
-          </p>
-          <h1 className="text-3xl font-bold text-slate-900">
-            Dashboard – {currentMonthName} {currentYear}
-          </h1>
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-wide text-slate-400">
+              Overview
+            </p>
+            <h1 className="text-3xl font-bold text-slate-100">
+              Dashboard – {currentMonthName} {currentYear}
+            </h1>
+          </div>
         </header>
 
         {loading && (
@@ -153,14 +155,14 @@ const Dashboard = () => {
             {[...Array(3)].map((_, i) => (
               <div
                 key={i}
-                className="h-32 animate-pulse rounded-2xl bg-white shadow-sm ring-1 ring-slate-200"
+                className="h-32 animate-pulse rounded-2xl bg-slate-800 shadow-sm ring-1 ring-slate-700"
               />
             ))}
           </div>
         )}
 
         {error && (
-          <div className="mb-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-red-700">
+          <div className="mb-6 rounded-2xl border border-red-600/30 bg-red-900/50 px-4 py-3 text-red-300">
             {error}
           </div>
         )}
@@ -185,14 +187,14 @@ const Dashboard = () => {
               </div>
 
               {/* Monthly Expenses Card */}
-              <div className="rounded-2xl bg-white shadow-sm ring-1 ring-slate-200 transition hover:-translate-y-0.5 hover:shadow-md">
+              <div className="rounded-2xl bg-slate-800 shadow-sm ring-1 ring-slate-700 transition hover:-translate-y-0.5 hover:shadow-md">
                 <div className="px-5 py-6">
-                  <p className="text-sm text-slate-500">Monthly Expenses</p>
-                  <div className="mt-2 text-4xl font-semibold text-red-600">
+                  <p className="text-sm text-slate-400">Monthly Expenses</p>
+                  <div className="mt-2 text-4xl font-semibold text-red-400">
                     {formatter.format(monthlyExpenses)}
                   </div>
                   {monthlyExpenses === 0 && (
-                    <div className="mt-3 text-xs text-slate-400">
+                    <div className="mt-3 text-xs text-slate-500">
                       No expenses this month
                     </div>
                   )}
@@ -203,15 +205,15 @@ const Dashboard = () => {
               <div
                 className={`rounded-2xl shadow-sm ring-1 transition hover:-translate-y-0.5 hover:shadow-md ${
                   monthlyBalance >= 0
-                    ? "bg-green-50 ring-green-100"
-                    : "bg-red-50 ring-red-100"
+                    ? "bg-green-900/50 ring-green-800/50"
+                    : "bg-red-900/50 ring-red-800/50"
                 }`}
               >
                 <div className="px-5 py-6">
-                  <p className="text-sm text-slate-500">Monthly Balance</p>
+                  <p className="text-sm text-slate-400">Monthly Balance</p>
                   <div
                     className={`mt-2 text-4xl font-semibold ${
-                      monthlyBalance >= 0 ? "text-green-700" : "text-red-700"
+                      monthlyBalance >= 0 ? "text-green-400" : "text-red-400"
                     }`}
                   >
                     {formatter.format(monthlyBalance)}
@@ -222,12 +224,12 @@ const Dashboard = () => {
                     </div>
                   )}
                   {monthlyBalance > 0 && (
-                    <div className="mt-3 inline-flex rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700">
+                    <div className="mt-3 inline-flex rounded-full bg-green-800/50 px-3 py-1 text-xs font-medium text-green-300">
                       Surplus
                     </div>
                   )}
                   {monthlyBalance < 0 && (
-                    <div className="mt-3 inline-flex rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-700">
+                    <div className="mt-3 inline-flex rounded-full bg-red-800/50 px-3 py-1 text-xs font-medium text-red-300">
                       Deficit
                     </div>
                   )}
@@ -239,10 +241,10 @@ const Dashboard = () => {
             <section>
               <div className="mb-4 flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+                  <p className="text-sm font-semibold uppercase tracking-wide text-slate-400">
                     Accounts
                   </p>
-                  <h2 className="text-xl font-semibold text-slate-900">
+                  <h2 className="text-xl font-semibold text-slate-100">
                     Account-wise Balance
                   </h2>
                 </div>
@@ -253,36 +255,36 @@ const Dashboard = () => {
                   return (
                     <div
                       key={account.accountType}
-                      className={`rounded-2xl border bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${
+                      className={`rounded-2xl border bg-slate-800 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${
                         isPositive
-                          ? "border-green-100"
-                          : "border-red-100"
+                          ? "border-green-700/50"
+                          : "border-red-700/50"
                       }`}
                     >
                       <div
                         className={`mb-2 inline-flex rounded-full border px-3 py-1 text-xs font-semibold ${
-                          badgeStyles[account.accountType] || "border-slate-200 text-slate-700"
+                          badgeStyles[account.accountType] || "border-slate-600 text-slate-300"
                         }`}
                       >
                         {account.accountType}
                       </div>
                       <div
                         className={`text-2xl font-bold ${
-                          isPositive ? "text-green-700" : "text-red-700"
+                          isPositive ? "text-green-400" : "text-red-400"
                         }`}
                       >
                         {formatter.format(account.balance)}
                       </div>
-                      <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-slate-600">
-                        <div className="rounded-lg bg-slate-50 px-3 py-2">
+                      <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-slate-400">
+                        <div className="rounded-lg bg-slate-700/50 px-3 py-2">
                           <p className="text-[11px] text-slate-500">Income</p>
-                          <p className="font-semibold text-slate-900">
+                          <p className="font-semibold text-slate-200">
                             {formatter.format(account.income)}
                           </p>
                         </div>
-                        <div className="rounded-lg bg-slate-50 px-3 py-2">
+                        <div className="rounded-lg bg-slate-700/50 px-3 py-2">
                           <p className="text-[11px] text-slate-500">Expenses</p>
-                          <p className="font-semibold text-slate-900">
+                          <p className="font-semibold text-slate-200">
                             {formatter.format(account.expenses)}
                           </p>
                         </div>

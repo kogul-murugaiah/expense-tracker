@@ -1,5 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { supabase } from "../lib/supabaseClient";
+import { useIncomeSources } from "../hooks/useIncomeSources";
+import { CustomDropdown } from "../components/CustomDropdown";
 
 const ACCOUNT_TYPES = [
   { label: "INDIAN", value: "INDIAN" },
@@ -8,17 +10,10 @@ const ACCOUNT_TYPES = [
   { label: "CASH", value: "CASH" },
 ];
 
-const INCOME_SOURCES = [
-  { label: "Salary", value: "Salary" },
-  { label: "Business", value: "Business" },
-  { label: "Bonus", value: "Bonus" },
-  { label: "Other", value: "Other" },
-];
-
 const initialForm = {
   amount: "",
   date: "",
-  source: INCOME_SOURCES[0].value,
+  source: "",
   accountType: ACCOUNT_TYPES[0].value,
 };
 
@@ -34,11 +29,21 @@ const AddIncome = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  const { sources, loading: sourcesLoading, addSource } = useIncomeSources();
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleAddSource = async (name: string) => {
+    try {
+      await addSource(name);
+    } catch (err: any) {
+      throw err;
+    }
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -48,6 +53,11 @@ const AddIncome = () => {
 
     if (!form.amount || !form.date) {
       setError("Amount and Date are required");
+      return;
+    }
+
+    if (!form.source) {
+      setError("Please select a source");
       return;
     }
 
@@ -87,104 +97,153 @@ const AddIncome = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-24 md:pb-0">
-      <div className="mx-auto flex max-w-3xl flex-col gap-6 px-4 py-10 sm:px-6 lg:px-8">
-        <header className="space-y-2">
-          <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">
-            Income
+    <div className="min-h-screen bg-slate-900 pb-24 md:pb-0">
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <header className="mb-6">
+          <p className="text-sm font-semibold uppercase tracking-wide text-slate-400">
+            New Record
           </p>
-          <h1 className="text-3xl font-bold text-slate-900">Add Income</h1>
-          <p className="text-sm text-slate-500">
-            Log your monthly income with a clean, guided form.
+          <h1 className="text-3xl font-bold text-slate-100">Enter Income</h1>
+          <p className="text-sm text-slate-400">
+            Fill in the details below to record a new income.
           </p>
         </header>
 
+        {error && (
+          <div className="mb-4 rounded-2xl border border-red-600/30 bg-red-900/50 px-4 py-3 text-red-300">
+            {error}
+          </div>
+        )}
+
+        {success && (
+          <div className="mb-4 rounded-2xl border border-green-600/30 bg-green-900/50 px-4 py-3 text-green-300">
+            {success}
+          </div>
+        )}
+
         <form
           onSubmit={handleSubmit}
-          className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 space-y-6"
+          className="rounded-2xl bg-slate-800 p-6 shadow-sm ring-1 ring-slate-700 space-y-6"
         >
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-slate-700">Amount (₹)</label>
-              <input
-                type="number"
-                name="amount"
-                placeholder="Enter amount"
-                value={form.amount}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                required
-                min="0"
-                step="0.01"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-slate-700">Date</label>
-              <input
-                type="date"
-                id="date"
-                name="date"
-                value={form.date}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                required
-              />
-            </div>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-slate-700">Source</label>
-              <select
-                name="source"
-                value={form.source}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              <label
+                htmlFor="amount"
+                className="block text-sm font-medium leading-6 text-slate-200"
               >
-                {INCOME_SOURCES.map((source) => (
-                  <option key={source.value} value={source.value}>
-                    {source.label}
-                  </option>
-                ))}
-              </select>
+                Amount
+              </label>
+              <div className="relative mt-2 rounded-xl shadow-sm">
+                <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                  <span className="text-slate-400 sm:text-sm">₹</span>
+                </div>
+                <input
+                  type="number"
+                  name="amount"
+                  id="amount"
+                  value={form.amount}
+                  onChange={handleChange}
+                  className="block w-full rounded-xl border-0 bg-slate-700/50 px-4 py-3 pl-10 text-slate-200 shadow-sm ring-1 ring-inset ring-slate-700 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
+                  placeholder="0.00"
+                  step="0.01"
+                  required
+                />
+              </div>
             </div>
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-slate-700">Account Type</label>
-              <select
-                name="accountType"
-                value={form.accountType}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+
+            <div className="grid gap-4 sm:grid-cols-2 mt-3">
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="date"
+                  className="block text-sm font-medium leading-6 text-slate-200"
+                >
+                  Date
+                </label>
+                <div className="mt-2">
+                  <input
+                    type="date"
+                    name="date"
+                    id="date"
+                    value={form.date}
+                    onChange={handleChange}
+                    className="block w-full rounded-xl border-0 bg-slate-700/50 px-4 py-3 text-slate-200 shadow-sm ring-1 ring-inset ring-slate-700 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
+                    required
+                  />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="source"
+                  className="block text-sm font-medium leading-6 text-slate-200"
+                >
+                  Source
+                </label>
+                <div className="mt-2">
+                  <CustomDropdown
+                    value={form.source}
+                    onChange={(value) => setForm(prev => ({ ...prev, source: value }))}
+                    options={sources.map(source => ({ value: source.id, label: source.name }))}
+                    placeholder="Select a source"
+                    onAddNew={handleAddSource}
+                    addNewLabel="+ Add new source"
+                    disabled={sourcesLoading}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2 mt-3">
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="accountType"
+                  className="block text-sm font-medium leading-6 text-slate-200"
+                >
+                  Account Type
+                </label>
+                <div className="mt-2">
+                  <select
+                    name="accountType"
+                    id="accountType"
+                    value={form.accountType}
+                    onChange={handleChange}
+                    className="block w-full rounded-xl border-0 bg-slate-700/50 px-4 py-3 text-slate-200 shadow-sm ring-1 ring-inset ring-slate-700 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6"
+                  >
+                    {ACCOUNT_TYPES.map((acc) => (
+                      <option key={acc.value} value={acc.value}>
+                        {acc.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {error && (
+              <div className="mt-3 rounded-lg border border-red-600/30 bg-red-900/50 px-3 py-2 text-sm text-red-300">
+                {error}
+              </div>
+            )}
+
+            <div className="mt-6 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setForm(initialForm);
+                  setError("");
+                  setSuccess("");
+                }}
+                className="rounded-lg border border-slate-600 px-4 py-2 text-sm font-semibold text-slate-300 hover:bg-slate-700/50"
               >
-                {ACCOUNT_TYPES.map((account) => (
-                  <option key={account.value} value={account.value}>
-                    {account.label}
-                  </option>
-                ))}
-              </select>
+                Clear
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                className="rounded-lg bg-emerald-600 px-6 py-2 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {loading ? "Saving..." : "Save Income"}
+              </button>
             </div>
-          </div>
-
-          {error && (
-            <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-              {error}
-            </div>
-          )}
-
-          {success && (
-            <div className="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
-              {success}
-            </div>
-          )}
-
-          <div className="pt-2">
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {loading ? "Saving..." : "Add Income"}
-            </button>
           </div>
         </form>
       </div>
