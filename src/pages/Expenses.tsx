@@ -29,25 +29,11 @@ type EditingExpense = {
   amount: string;
 };
 
-const ACCOUNT_TYPES = [
-  { label: "INDIAN", value: "INDIAN" },
-  { label: "SBI", value: "SBI" },
-  { label: "UNION", value: "UNION" },
-  { label: "CASH", value: "CASH" },
-];
-
 const formatter = new Intl.NumberFormat("en-IN", {
   style: "currency",
-  currency: "USD",
+  currency: "INR",
   maximumFractionDigits: 2,
 });
-
-const accountBadge: Record<string, string> = {
-  INDIAN: "bg-teal-900/50 text-teal-300 border-teal-700/50",
-  SBI: "bg-blue-900/50 text-blue-300 border-blue-700/50",
-  UNION: "bg-purple-900/50 text-purple-300 border-purple-700/50",
-  CASH: "bg-amber-900/50 text-amber-300 border-amber-700/50",
-};
 
 const Expenses = () => {
   const { accountTypes } = useAccountTypes();

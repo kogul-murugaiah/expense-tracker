@@ -34,8 +34,6 @@ type MonthTotal = {
   total: number;
 };
 
-const ACCOUNT_TYPES = ["INDIAN", "SBI", "UNION", "CASH"];
-
 const MONTH_NAMES = [
   "January",
   "February",
