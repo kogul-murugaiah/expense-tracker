@@ -1,6 +1,16 @@
+/*
+ * Expense Tracker Application - Global Styles
+ * Copyright (c) 2026 kogulmurugaiah
+ * All rights reserved.
+ * 
+ * Developer: kogulmurugaiah
+ * Description: Global styles for the expense tracking application
+ */
+
 @import "tailwindcss";
 
 @layer base {
+  /* Dark theme base styles */
   body {
     @apply bg-slate-900 text-slate-100;
   }

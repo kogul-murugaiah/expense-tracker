@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { useExpenseCategories } from "../hooks/useExpenseCategories";
 import { CustomDropdown } from "../components/CustomDropdown";
+import Footer from "../components/Footer";
 
 const ACCOUNT_TYPES = [
   { label: "INDIAN", value: "INDIAN" },
@@ -101,7 +102,8 @@ const AddExpense = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900 pb-24 md:pb-0">
+    <>
+      <div className="min-h-screen bg-slate-900 pb-24 md:pb-0">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <header className="mb-6">
           <p className="text-sm font-semibold uppercase tracking-wide text-slate-400">
@@ -292,6 +294,8 @@ const AddExpense = () => {
         </form>
       </div>
     </div>
+    <Footer />
+    </>
   );
 };
 

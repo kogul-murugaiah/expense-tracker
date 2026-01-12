@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
+import Footer from "../components/Footer";
 
 type Income = {
   id: number;
@@ -137,7 +138,8 @@ const Dashboard = () => {
   const currentMonthName = monthNames[currentMonth - 1];
 
   return (
-    <div className="min-h-screen bg-slate-900 pb-24 md:pb-0">
+    <>
+      <div className="min-h-screen bg-slate-900 pb-24 md:pb-0">
       <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
         <header className="mb-8">
           <div>
@@ -298,6 +300,8 @@ const Dashboard = () => {
         )}
       </div>
     </div>
+      <Footer />
+    </>
   );
 };
 

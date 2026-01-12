@@ -1,3 +1,12 @@
+/*
+ * Expense Tracker Application
+ * Copyright (c) 2026 kogulmurugaiah
+ * All rights reserved.
+ * 
+ * Developer: kogulmurugaiah
+ * Description: A comprehensive expense tracking application with dark theme UI
+ */
+
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import MobileBottomNav from './components/MobileBottomNav';

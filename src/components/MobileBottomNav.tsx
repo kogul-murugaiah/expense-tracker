@@ -201,6 +201,16 @@ const MobileBottomNav = () => {
                   >
                     Logout
                   </button>
+
+                  {/* Copyright */}
+                  <div className="my-4 border-t border-slate-700 pt-4">
+                    <p className="text-center text-xs text-slate-500">
+                      © 2026 kogulmurugaiah
+                    </p>
+                    <p className="text-center text-xs text-slate-600">
+                      Expense Tracker App
+                    </p>
+                  </div>
                 </>
               )}
             </div>

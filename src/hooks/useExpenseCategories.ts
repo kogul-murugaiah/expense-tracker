@@ -68,7 +68,7 @@ export const useExpenseCategories = () => {
 
       // Check for duplicates (case-insensitive)
       const existingCategory = categories.find(
-        cat => cat.name.toLowerCase() === trimmedName.toLowerCase()
+        cat => cat.name && cat.name.toLowerCase() === trimmedName.toLowerCase()
       );
       if (existingCategory) {
         throw new Error('Category already exists');

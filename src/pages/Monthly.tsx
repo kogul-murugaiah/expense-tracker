@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
+import Footer from "../components/Footer";
 
 type Category = {
   id: number;
@@ -150,7 +151,8 @@ const Monthly = () => {
   const monthName = monthNames[month - 1];
 
   return (
-    <div className="min-h-screen bg-slate-900 pb-24 md:pb-0">
+    <>
+      <div className="min-h-screen bg-slate-900 pb-24 md:pb-0">
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -302,6 +304,8 @@ const Monthly = () => {
         )}
       </div>
     </div>
+    <Footer />
+    </>
   );
 };
 
