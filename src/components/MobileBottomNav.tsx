@@ -9,19 +9,13 @@ const mobileLinks = [
   { to: "/add-income", label: "Income", icon: PlusIcon, fab: true },
 ];
 
-// Helper function to get user initials from email
+// Helper function to get initials from email
 const getInitials = (email: string): string => {
-  const parts = email.split("@")[0];
+  const parts = email.split("@")[0].split(".");
   if (parts.length >= 2) {
-    return parts.substring(0, 2).toUpperCase();
+    return parts.slice(0, 2).map(part => part.substring(0, 1).toUpperCase()).join('');
   }
-  return parts.substring(0, 1).toUpperCase();
-};
-
-// Helper function to truncate email
-const truncateEmail = (email: string, maxLength: number = 20): string => {
-  if (email.length <= maxLength) return email;
-  return email.substring(0, maxLength - 3) + "...";
+  return parts[0].substring(0, 1).toUpperCase();
 };
 
 const MobileBottomNav = () => {

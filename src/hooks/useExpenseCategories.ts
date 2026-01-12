@@ -79,7 +79,6 @@ export const useExpenseCategories = () => {
         .from('categories')
         .insert({
           name: trimmedName,
-          keyword: null,
         })
         .select()
         .single();
