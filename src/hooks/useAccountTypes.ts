@@ -11,10 +11,8 @@ import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabaseClient";
 import type { User } from "@supabase/supabase-js";
 
-const DEFAULT_ACCOUNT_TYPES = ["INDIAN", "SBI", "UNION", "CASH"];
-
 export const useAccountTypes = () => {
-  const [accountTypes, setAccountTypes] = useState<string[]>(DEFAULT_ACCOUNT_TYPES);
+  const [accountTypes, setAccountTypes] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
@@ -29,8 +27,8 @@ export const useAccountTypes = () => {
     getCurrentUser();
   }, []);
 
-  // Fetch user-specific account types
-  const fetchAccountTypes = async () => {
+  // Fetch user-specific account types with retry logic
+  const fetchAccountTypes = async (retryCount = 0) => {
     if (!user) return;
 
     setLoading(true);
@@ -45,10 +43,15 @@ export const useAccountTypes = () => {
 
       if (error) throw error;
 
-      const customTypes = data?.map(row => row.name) || [];
-      const mergedTypes = [...DEFAULT_ACCOUNT_TYPES, ...customTypes];
+      const types = data?.map(row => row.name) || [];
       
-      setAccountTypes(mergedTypes);
+      if (types.length === 0 && retryCount < 6) {
+        // If no accounts exist yet (trigger hasn't run), retry after 500ms
+        setTimeout(() => fetchAccountTypes(retryCount + 1), 500);
+        return;
+      }
+      
+      setAccountTypes(types);
     } catch (err: any) {
       setError(err.message || "Failed to fetch account types");
     } finally {
@@ -102,7 +105,7 @@ export const useAccountTypes = () => {
 
   // Reset to defaults (for logout)
   const resetToDefaults = () => {
-    setAccountTypes(DEFAULT_ACCOUNT_TYPES);
+    setAccountTypes([]);
     setError(null);
     setUser(null);
   };
