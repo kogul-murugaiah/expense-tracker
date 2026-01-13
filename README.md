@@ -1,7 +1,7 @@
 # 💰 CASHAM — Expense Tracker App
 
-CASHAM is a modern multi-user expense tracker built using **Vite + React + TypeScript + Tailwind CSS** with **Supabase** as the backend.  
-It provides clean analytics dashboards, income/expense tracking, monthly & yearly insights, and multi-user authentication with secure **Row Level Security (RLS)**.
+CASHAM is a modern multi-user finance & expense tracker built using *Vite + React + TypeScript + Tailwind CSS* with *Supabase* as the backend.  
+It provides clean dashboards, income/expense tracking, monthly & yearly insights, and secure multi-user authentication with *Row Level Security (RLS)*.
 
 ---
 
@@ -15,7 +15,7 @@ It provides clean analytics dashboards, income/expense tracking, monthly & yearl
 ### ✅ Authentication (Multi-user)
 - Email + Password Login & Signup
 - Email verification support
-- Secure per-user data access using **Supabase RLS policies**
+- Secure per-user data access using *Supabase RLS policies*
 - User profile identification (shows logged-in email)
 - Logout support (Desktop + Mobile)
 
@@ -24,8 +24,8 @@ It provides clean analytics dashboards, income/expense tracking, monthly & yearl
   - Item name
   - Amount
   - Date
-  - Category
-  - Account type
+  - User-specific Category (from categories table)
+  - User-specific Account Type
   - Optional description
 - Manage expenses (view + edit)
 
@@ -33,50 +33,48 @@ It provides clean analytics dashboards, income/expense tracking, monthly & yearl
 - Add income with:
   - Amount
   - Date
-  - Source
-  - Account type
+  - User-specific Source (from income_sources table)
+  - User-specific Account Type
 
 ### ✅ Analytics Dashboard
 - Monthly summary cards:
   - Income
   - Expenses
   - Balance
-- Account-wise analytics
+- Account-wise analytics (dynamic per user)
 - Auto-updates when custom accounts are added
 
 ### ✅ Monthly / Yearly Insights
 - Monthly tracking by category & account
 - Yearly tracking overview
 
-### ✅ Custom Account Types
-- Users can create custom account types
-- Dashboard & forms automatically load the user’s accounts
-- Default accounts auto-created for new users
+### ✅ Custom Master Data (Per User)
+- ✅ Custom Account Types (account_types)
+- ✅ Custom Categories (categories)
+- ✅ Custom Income Sources (income_sources)
+- Dropdowns load only the logged-in user’s categories/sources/accounts
 
 ### ✅ Mobile Friendly UI
-- Premium dark-themed UI (Gen-Z style)
+- Premium dark-themed UI
 - Bottom Navigation Bar
-- Profile sheet & logout inside mobile UI
+- Profile sheet and logout inside mobile UI
 - Touch-friendly layout
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠 Tech Stack
 
 ### Frontend
-- **Vite**
-- **React**
-- **TypeScript**
-- **Tailwind CSS**
+- Vite
+- React
+- TypeScript
+- Tailwind CSS
 
 ### Backend
-- **Supabase**
-  - Auth
-  - Database
-  - RLS policies
+- Supabase (Auth + Database + RLS)
 
 ### Deployment
-- **Vercel**
+- Vercel
 
 ---
 
@@ -84,54 +82,34 @@ It provides clean analytics dashboards, income/expense tracking, monthly & yearl
 
 | Page | Route |
 |------|-------|
-| Dashboard | `/` |
-| Add Expense | `/add` |
-| Add Income | `/add-income` |
-| Monthly | `/monthly` |
-| Yearly | `/yearly` |
-| Manage Expenses | `/expenses` |
-| Login | `/login` |
-| Signup | `/signup` |
+| Dashboard | / |
+| Add Expense | /add |
+| Add Income | /add-income |
+| Monthly | /monthly |
+| Yearly | /yearly |
+| Manage Expenses | /expenses |
+| Login | /login |
+| Signup | /signup |
 
 ---
 
 ## 🔐 Security — Row Level Security (RLS)
 
-CASHAM is built as a **true multi-user app**.
+CASHAM is built as a *true multi-user app*.  
+All tables use Supabase *RLS policies, ensuring each user can access **only their own data*.
 
-All main tables (expenses, income, account_types) use Supabase **RLS policies**, ensuring:
-- A user can access **only their data**
-- Insert/Update/Delete are restricted to the logged-in user's rows
-
----
-
-## ⚙️ Supabase Setup
-
-### 1️⃣ Create Supabase Project
-Go to: https://supabase.com/  
-Create a new project.
-
-### 2️⃣ Add Tables
-Required tables:
-- `expenses`
-- `income`
-- `categories`
-- `account_types`
-
-### 3️⃣ Enable RLS
-Enable RLS on:
-- `expenses`
-- `income`
-- `account_types`
-
-### 4️⃣ Add RLS Policies
-Policies should restrict access using `auth.uid() = user_id`
+Tables protected with RLS:
+- expenses
+- income
+- account_types
+- categories
+- income_sources
 
 ---
 
 ## 🔑 Environment Variables
 
-Create a `.env` file in the root folder:
+Create a .env file in the project root and add:
 
 ```env
 VITE_SUPABASE_URL=your_supabase_project_url
