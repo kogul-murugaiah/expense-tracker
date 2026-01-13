@@ -20,7 +20,8 @@ const AddIncome = () => {
     return {
       ...initialForm,
       date: today,
-      accountType: accountTypes[0], // Use first account type from hook
+      accountType: accountTypes[0] || "", // Use first account type from hook
+      source: sources.length > 0 ? sources[0].id : "", // Use first source ID if available
     };
   });
   const [loading, setLoading] = useState(false);

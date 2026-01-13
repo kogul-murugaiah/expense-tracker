@@ -16,19 +16,19 @@ const initialForm = {
 
 const AddExpense = () => {
   const { accountTypes } = useAccountTypes();
+  const { categories, loading: categoriesLoading, addCategory } = useExpenseCategories();
   const [form, setForm] = useState(() => {
     const today = new Date().toISOString().slice(0, 10);
     return {
       ...initialForm,
       date: today,
-      accountType: accountTypes[0], // Use first account type from hook
+      accountType: accountTypes[0] || "", // Use first account type from hook
+      category_id: categories.length > 0 ? categories[0].id.toString() : "", // Use first category ID if available
     };
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-
-  const { categories, loading: categoriesLoading, addCategory } = useExpenseCategories();
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -225,7 +225,7 @@ const AddExpense = () => {
                   <CustomDropdown
                     value={form.category_id}
                     onChange={(value) => setForm(prev => ({ ...prev, category_id: value }))}
-                    options={categories.map(cat => ({ value: cat.id, label: cat.name }))}
+                    options={categories.map(cat => ({ value: cat.id.toString(), label: cat.name }))}
                     placeholder="Select a category"
                     onAddNew={handleAddCategory}
                     addNewLabel="+ Add new category"
