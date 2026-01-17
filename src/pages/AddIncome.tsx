@@ -10,6 +10,7 @@ const initialForm = {
   date: "",
   source: "",
   accountType: "",
+  description: "",
 };
 
 const AddIncome = () => {
@@ -29,7 +30,7 @@ const AddIncome = () => {
   const [success, setSuccess] = useState("");
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -88,8 +89,10 @@ const AddIncome = () => {
       const { error } = await supabase.from("income").insert({
         amount: Number(form.amount),
         date: form.date,
-        source: form.source,
+        source: sources.find(s => s.id === form.source)?.name || "Unknown",
+        source_id: form.source,
         account_type: form.accountType,
+        description: form.description.trim() || null,
         user_id: user.id,
       });
 
@@ -222,6 +225,30 @@ const AddIncome = () => {
                     addNewLabel="+ Add new account type"
                     disabled={loading}
                   />
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label
+                htmlFor="description"
+                className="block text-sm font-medium leading-6 text-slate-200"
+              >
+                Description (Optional)
+              </label>
+              <div className="mt-2">
+                <textarea
+                  name="description"
+                  id="description"
+                  value={form.description}
+                  onChange={handleChange}
+                  maxLength={300}
+                  rows={3}
+                  className="block w-full rounded-xl border-0 bg-slate-700/50 px-4 py-3 text-slate-200 shadow-sm ring-1 ring-inset ring-slate-700 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:text-sm sm:leading-6 resize-none"
+                  placeholder="Add a description for this income record..."
+                />
+                <div className="mt-1 text-xs text-slate-400">
+                  {form.description.length}/300 characters
                 </div>
               </div>
             </div>

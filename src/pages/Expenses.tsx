@@ -126,6 +126,62 @@ const Expenses = () => {
     setError(null);
   };
 
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this expense?")) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("expenses")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+
+      setSuccess("Expense deleted successfully");
+      
+      // Refresh expenses list
+      const { data: categoriesData, error: categoriesError } = await supabase
+        .from("categories")
+        .select("*")
+        .order("name");
+
+      if (categoriesError) throw categoriesError;
+      setCategories(categoriesData || []);
+
+      const { data: expensesData, error: expensesError } = await supabase
+        .from("expenses")
+        .select(`
+          id,
+          date,
+          item,
+          description,
+          category_id,
+          amount,
+          account_type,
+          categories (
+            id,
+            name
+          )
+        `)
+        .order("date", { ascending: false });
+
+      if (expensesError) throw expensesError;
+
+      const typedData = (expensesData || []).map((exp: any) => ({
+        ...exp,
+        categories: Array.isArray(exp.categories)
+          ? exp.categories[0] || null
+          : exp.categories || null,
+      })) as Expense[];
+
+      setExpenses(typedData);
+    } catch (err: any) {
+      setError(err.message || "Failed to delete expense");
+    }
+  };
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -334,9 +390,16 @@ const Expenses = () => {
                             <button
                               onClick={() => handleEdit(expense)}
                               disabled={editingId !== null}
-                              className="inline-flex items-center gap-1 rounded-full bg-slate-700 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
+                              className="mr-2 inline-flex items-center gap-1 rounded-full bg-slate-700 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
                             >
                               Edit
+                            </button>
+                            <button
+                              onClick={() => handleDelete(expense.id)}
+                              disabled={editingId !== null}
+                              className="inline-flex items-center gap-1 rounded-full bg-red-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
+                            >
+                              Delete
                             </button>
                           </td>
                         </tr>

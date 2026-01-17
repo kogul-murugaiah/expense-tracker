@@ -12,6 +12,7 @@ type Income = {
   account_type: string;
   user_id: string;
   created_at: string;
+  description: string | null;
   income_sources?: {
     name: string;
   };
@@ -23,6 +24,7 @@ type EditingIncome = {
   amount: string;
   source_id: string;
   account_type: string;
+  description: string;
 };
 
 const IncomeEditor = () => {
@@ -78,6 +80,7 @@ const IncomeEditor = () => {
       amount: record.amount.toString(),
       source_id: record.source_id,
       account_type: record.account_type,
+      description: record.description || "",
     });
     setSuccess(null);
     setError(null);
@@ -106,6 +109,7 @@ const IncomeEditor = () => {
           amount: parseFloat(editingData.amount),
           source_id: editingData.source_id,
           account_type: editingData.account_type,
+          description: editingData.description.trim() || null,
         })
         .eq("id", editingData.id);
 
@@ -212,6 +216,9 @@ const IncomeEditor = () => {
                         Source
                       </th>
                       <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wide text-slate-300">
+                        Description
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-medium uppercase tracking-wide text-slate-300">
                         Account Type
                       </th>
                       <th className="px-6 py-4 text-right text-xs font-medium uppercase tracking-wide text-slate-300">
@@ -269,6 +276,20 @@ const IncomeEditor = () => {
                               </select>
                             </td>
                             <td className="px-6 py-4">
+                              <textarea
+                                value={editingData?.description || ""}
+                                onChange={(e) =>
+                                  setEditingData((prev) =>
+                                    prev ? { ...prev, description: e.target.value } : null
+                                  )
+                                }
+                                maxLength={300}
+                                rows={2}
+                                className="w-full rounded-lg bg-slate-700 border border-slate-600 px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-sm"
+                                placeholder="Add description..."
+                              />
+                            </td>
+                            <td className="px-6 py-4">
                               <select
                                 value={editingData?.account_type || ""}
                                 onChange={(e) =>
@@ -312,6 +333,15 @@ const IncomeEditor = () => {
                             </td>
                             <td className="px-6 py-4 text-sm text-slate-300">
                               {record.income_sources?.name || "Unknown"}
+                            </td>
+                            <td className="px-6 py-4 text-sm text-slate-300">
+                              {record.description ? (
+                                <span className="max-w-xs truncate" title={record.description}>
+                                  {record.description}
+                                </span>
+                              ) : (
+                                <span className="text-slate-500">-</span>
+                              )}
                             </td>
                             <td className="px-6 py-4">
                               <span
