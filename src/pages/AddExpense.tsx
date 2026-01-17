@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { useExpenseCategories } from "../hooks/useExpenseCategories";
 import { useAccountTypes } from "../hooks/useAccountTypes";
@@ -29,6 +29,41 @@ const AddExpense = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [recentExpenses, setRecentExpenses] = useState<any[]>([]);
+
+  // Fetch recent expenses
+  const fetchRecentExpenses = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from("expenses")
+        .select(`
+          id,
+          created_at,
+          date,
+          item,
+          amount,
+          categories (
+            id,
+            name
+          )
+        `)
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(5);
+
+      if (error) throw error;
+      setRecentExpenses(data || []);
+    } catch (err: any) {
+      console.error("Error fetching recent expenses:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchRecentExpenses();
+  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -283,6 +318,61 @@ const AddExpense = () => {
           </div>
         </form>
       </div>
+
+      {/* Recent Expenses */}
+      {recentExpenses.length > 0 && (
+        <div className="mt-8">
+          <h2 className="text-xl font-bold bg-gradient-to-r from-blue-400 via-cyan-400 to-teal-400 bg-clip-text text-transparent transform hover:scale-105 transition-all duration-300 mb-4">
+            Recent Expenses
+          </h2>
+          <div className="rounded-2xl bg-slate-800 shadow-sm ring-1 ring-slate-700">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-slate-700/50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-slate-300">
+                      Date
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-slate-300">
+                      Item
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-slate-300">
+                      Category
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wide text-slate-300">
+                      Amount
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-700">
+                  {recentExpenses.map((expense) => (
+                    <tr key={expense.id} className="hover:bg-slate-700/30 transition-colors">
+                      <td className="px-6 py-3 text-sm text-slate-300">
+                        {new Date(expense.date).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-3 text-sm font-medium text-slate-100">
+                        {expense.item}
+                      </td>
+                      <td className="px-6 py-3 text-sm text-slate-300">
+                        {expense.categories ? (
+                          <span className="inline-flex items-center rounded-full bg-slate-700 px-2 py-1 text-xs font-medium text-slate-300">
+                            {expense.categories.name}
+                          </span>
+                        ) : (
+                          <span className="text-slate-500">-</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-3 text-right text-sm font-semibold text-red-400">
+                        ₹{expense.amount.toFixed(2)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
     <Footer />
     </>
