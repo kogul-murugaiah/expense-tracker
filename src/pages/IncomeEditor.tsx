@@ -35,6 +35,10 @@ const IncomeEditor = () => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingData, setEditingData] = useState<EditingIncome | null>(null);
 
@@ -53,6 +57,11 @@ const IncomeEditor = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
 
+      // Calculate date range for selected month
+      const [year, month] = selectedMonth.split('-');
+      const firstDay = `${selectedMonth}-01`;
+      const lastDay = new Date(parseInt(year), parseInt(month), 0).toISOString().slice(0, 10);
+
       const { data, error } = await supabase
         .from("income")
         .select(`
@@ -60,6 +69,8 @@ const IncomeEditor = () => {
           income_sources!inner(name)
         `)
         .eq("user_id", user.id)
+        .gte("date", firstDay)
+        .lte("date", lastDay)
         .order("date", { ascending: false });
 
       if (error) throw error;
@@ -151,7 +162,7 @@ const IncomeEditor = () => {
 
   useEffect(() => {
     fetchIncome();
-  }, []);
+  }, [selectedMonth]);
 
   return (
     <>
@@ -167,8 +178,14 @@ const IncomeEditor = () => {
                 View and update your income records with inline editing.
               </p>
             </div>
-            <div className="flex gap-2 text-xs text-slate-400">
-              <span className="rounded-full bg-slate-700 px-3 py-1">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <input
+                type="month"
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                className="w-full max-w-xs rounded-lg border border-slate-600 bg-slate-700/50 px-4 py-2 text-sm text-slate-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 cursor-pointer [&::-webkit-calendar-picker-indicator]:text-white [&::-webkit-calendar-picker-indicator]:bg-slate-600 [&::-webkit-calendar-picker-indicator]:hover:bg-slate-500"
+              />
+              <span className="rounded-full bg-slate-700 px-3 py-1 text-xs text-slate-400">
                 {income.length} records
               </span>
             </div>

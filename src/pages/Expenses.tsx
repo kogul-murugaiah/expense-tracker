@@ -46,6 +46,10 @@ const Expenses = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingData, setEditingData] = useState<EditingExpense | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  });
 
   // Fetch expenses and categories
   useEffect(() => {
@@ -63,7 +67,12 @@ const Expenses = () => {
         if (categoriesError) throw categoriesError;
         setCategories(categoriesData || []);
 
-        // Fetch expenses with category join
+        // Calculate date range for selected month
+        const [year, month] = selectedMonth.split('-');
+        const firstDay = `${selectedMonth}-01`;
+        const lastDay = new Date(parseInt(year), parseInt(month), 0).toISOString().slice(0, 10);
+
+        // Fetch expenses with category join and month filter
         const { data: expensesData, error: expensesError } = await supabase
           .from("expenses")
           .select(
@@ -81,6 +90,8 @@ const Expenses = () => {
             )
           `
           )
+          .gte("date", firstDay)
+          .lte("date", lastDay)
           .order("date", { ascending: false });
 
         if (expensesError) throw expensesError;
@@ -101,7 +112,7 @@ const Expenses = () => {
     };
 
     fetchData();
-  }, []);
+  }, [selectedMonth]);
 
   const handleEdit = (expense: Expense) => {
     setEditingId(expense.id);
@@ -290,8 +301,14 @@ const Expenses = () => {
                 View, update and delete your expenses with inline editing.
               </p>
             </div>
-            <div className="flex gap-2 text-xs text-slate-400">
-              <span className="rounded-full bg-slate-700 px-3 py-1">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <input
+                type="month"
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                className="w-full max-w-xs rounded-lg border border-slate-600 bg-slate-700/50 px-4 py-2 text-sm text-slate-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 cursor-pointer [&::-webkit-calendar-picker-indicator]:text-white [&::-webkit-calendar-picker-indicator]:bg-slate-600 [&::-webkit-calendar-picker-indicator]:hover:bg-slate-500"
+              />
+              <span className="rounded-full bg-slate-700 px-3 py-1 text-xs text-slate-400">
                 {expenses.length} records
               </span>
             </div>
