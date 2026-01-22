@@ -7,7 +7,9 @@
  * Description: Global styles for the expense tracking application
  */
 
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 @layer base {
   /* Dark theme base styles */
