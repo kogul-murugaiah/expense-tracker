@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { useAccountTypes } from "../hooks/useAccountTypes";
+import * as XLSX from 'xlsx';
 import {
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend,
   BarChart, Bar, XAxis, YAxis, CartesianGrid
@@ -12,9 +13,10 @@ type Category = {
 };
 
 type Expense = {
-  id: number;
+  id: string;
   amount: number;
   date: string;
+  item: string;
   category_id: number;
   account_type: string;
   categories: Category | null;
@@ -74,6 +76,7 @@ const Yearly = () => {
             id,
             amount,
             date,
+            item,
             category_id,
             account_type,
             categories (
@@ -157,6 +160,45 @@ const Yearly = () => {
 
   // Calculate grand total
   const grandTotal = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+
+  // Pagination Logic
+  const [currentPage, setCurrentPage] = useState(1);
+  const recordsPerPage = 15;
+  const totalPages = Math.ceil(expenses.length / recordsPerPage);
+  const indexOfLastRecord = currentPage * recordsPerPage;
+  const indexOfFirstRecord = indexOfLastRecord - recordsPerPage;
+  const currentExpenses = expenses.slice(indexOfFirstRecord, indexOfLastRecord);
+
+  // Reset page when year changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedYear]);
+
+  const handleExport = () => {
+    const exportData = expenses.map(exp => ({
+      Date: new Date(exp.date).toLocaleDateString('en-IN'),
+      Item: exp.item,
+      Category: exp.categories?.name || "Uncategorized",
+      Account: exp.account_type,
+      Amount: exp.amount
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Expenses");
+
+    // Auto-size columns
+    const wscols = [
+      { wch: 12 }, // Date
+      { wch: 25 }, // Item
+      { wch: 20 }, // Category
+      { wch: 15 }, // Account
+      { wch: 12 }, // Amount
+    ];
+    worksheet['!cols'] = wscols;
+
+    XLSX.writeFile(workbook, `Expenses_${selectedYear}.xlsx`);
+  };
 
   return (
     <div className="pb-24 pt-8 md:pb-8">
@@ -364,6 +406,88 @@ const Yearly = () => {
                       )}
                     </div>
                   </div>
+                </div>
+
+                {/* Transaction History Section */}
+                <div className="glass-card p-0 overflow-hidden">
+                  <div className="border-b border-white/5 bg-slate-900/40 px-6 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <h2 className="text-lg font-bold text-white font-heading">
+                        Transaction History
+                      </h2>
+                      <span className="text-xs font-medium text-slate-400 bg-slate-800/50 px-2 py-1 rounded-md border border-white/5">
+                        {expenses.length} Transactions
+                      </span>
+                    </div>
+                    <button
+                      onClick={handleExport}
+                      className="flex items-center justify-center gap-2 rounded-xl bg-green-500/10 px-4 py-2.5 text-sm font-bold text-green-400 border border-green-500/20 hover:bg-green-500 hover:text-white transition-all shadow-lg shadow-green-500/5"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                      Download Excel
+                    </button>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="border-b border-white/5 bg-slate-900/20">
+                          <th className="px-6 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Date</th>
+                          <th className="px-6 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Item</th>
+                          <th className="px-6 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Category</th>
+                          <th className="px-6 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400">Account</th>
+                          <th className="px-6 py-3 text-xs font-semibold uppercase tracking-wider text-slate-400 text-right">Amount</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/5">
+                        {currentExpenses.map((exp) => (
+                          <tr key={exp.id} className="group transition hover:bg-white/5">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
+                              {new Date(exp.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-200">
+                              {exp.item}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-500/10 text-blue-300 border border-blue-500/20">
+                                {exp.categories?.name || "Uncategorized"}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-400">
+                              {exp.account_type}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-white text-right">
+                              {currencyFormatter.format(exp.amount)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Pagination Controls */}
+                  {totalPages > 1 && (
+                    <div className="border-t border-white/5 bg-slate-900/40 px-6 py-4 flex items-center justify-between">
+                      <p className="text-sm text-slate-400">
+                        Showing <span className="text-white font-medium">{indexOfFirstRecord + 1}</span> to <span className="text-white font-medium">{Math.min(indexOfLastRecord, expenses.length)}</span> of <span className="text-white font-medium">{expenses.length}</span>
+                      </p>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                          disabled={currentPage === 1}
+                          className="rounded-lg bg-slate-800 px-4 py-2 text-sm font-semibold text-slate-200 transition duration-200 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed border border-white/5"
+                        >
+                          Previous
+                        </button>
+                        <button
+                          onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                          disabled={currentPage === totalPages}
+                          className="rounded-lg bg-slate-800 px-4 py-2 text-sm font-semibold text-slate-200 transition duration-200 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed border border-white/5"
+                        >
+                          Next
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </>
             )}
