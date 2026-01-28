@@ -88,6 +88,7 @@ const IncomeTracking = () => {
             const { data: sourcesData } = await supabase
                 .from("income_sources")
                 .select("*")
+                .eq("user_id", user.id)
                 .order("name");
             setSources(sourcesData || []);
 
@@ -171,7 +172,14 @@ const IncomeTracking = () => {
 
         try {
             setError(null);
-            const { error } = await supabase.from("income").delete().eq("id", id);
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) throw new Error("User not authenticated");
+
+            const { error } = await supabase
+                .from("income")
+                .delete()
+                .eq("id", id)
+                .eq("user_id", user.id);
             if (error) throw error;
             setSuccess("Income record deleted");
             setRecords(prev => prev.filter(r => r.id !== id));
@@ -193,6 +201,9 @@ const IncomeTracking = () => {
         setError(null);
 
         try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) throw new Error("User not authenticated");
+
             const { error } = await supabase
                 .from("income")
                 .update({
@@ -202,7 +213,8 @@ const IncomeTracking = () => {
                     amount: Number(editingData.amount),
                     account_type: editingData.account_type,
                 })
-                .eq("id", editingId);
+                .eq("id", editingId)
+                .eq("user_id", user.id);
 
             if (error) throw error;
 

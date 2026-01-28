@@ -95,6 +95,7 @@ const ExpenseTracking = () => {
             const { data: categoriesData } = await supabase
                 .from("categories")
                 .select("*")
+                .eq("user_id", user.id)
                 .order("name");
             setCategories(categoriesData || []);
 
@@ -180,7 +181,14 @@ const ExpenseTracking = () => {
 
         try {
             setError(null);
-            const { error } = await supabase.from("expenses").delete().eq("id", id);
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) throw new Error("User not authenticated");
+
+            const { error } = await supabase
+                .from("expenses")
+                .delete()
+                .eq("id", id)
+                .eq("user_id", user.id);
             if (error) throw error;
             setSuccess("Expense deleted successfully");
             setExpenses(prev => prev.filter(e => e.id !== id));
@@ -202,6 +210,9 @@ const ExpenseTracking = () => {
         setError(null);
 
         try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) throw new Error("User not authenticated");
+
             const { error } = await supabase
                 .from("expenses")
                 .update({
@@ -212,7 +223,8 @@ const ExpenseTracking = () => {
                     account_type: editingData.account_type,
                     category_id: editingData.category_id ? Number(editingData.category_id) : null,
                 })
-                .eq("id", editingId);
+                .eq("id", editingId)
+                .eq("user_id", user.id);
 
             if (error) throw error;
 

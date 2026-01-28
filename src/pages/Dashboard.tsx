@@ -86,6 +86,7 @@ const Dashboard = () => {
         const { data: expenseData, error: expenseError } = await supabase
           .from("expenses")
           .select("id, amount, date, account_type")
+          .eq("user_id", user.id)
           .gte("date", startDate)
           .lt("date", endDate);
 
@@ -264,34 +265,44 @@ const Dashboard = () => {
               <div className="glass-card p-6">
                 <h3 className="text-lg font-bold text-white mb-6 font-heading">Account Distribution</h3>
                 <div className="h-64 w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={accountDistributionData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={80}
-                        paddingAngle={5}
-                        dataKey="value"
-                      >
-                        {accountDistributionData.map((_, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="rgba(0,0,0,0)" />
-                        ))}
-                      </Pie>
-                      <Tooltip
-                        contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', color: '#f8fafc' }}
-                        itemStyle={{ color: '#f8fafc' }}
-                        formatter={(value: any) => currencyFormatter.format(value)}
-                      />
-                      <Legend
-                        verticalAlign="bottom"
-                        height={36}
-                        iconType="circle"
-                        formatter={(value) => <span className="text-slate-400 text-sm ml-1">{value}</span>}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
+                  {accountDistributionData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={accountDistributionData}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={60}
+                          outerRadius={80}
+                          paddingAngle={5}
+                          dataKey="value"
+                        >
+                          {accountDistributionData.map((_, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="rgba(0,0,0,0)" />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', color: '#f8fafc' }}
+                          itemStyle={{ color: '#f8fafc' }}
+                          formatter={(value: any) => currencyFormatter.format(value)}
+                        />
+                        <Legend
+                          verticalAlign="bottom"
+                          height={36}
+                          iconType="circle"
+                          formatter={(value) => <span className="text-slate-400 text-sm ml-1">{value}</span>}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="h-full w-full flex flex-col items-center justify-center text-slate-500 space-y-2">
+                      <div className="w-12 h-12 rounded-full border-2 border-slate-700 border-dashed animate-spin-slow flex items-center justify-center text-xl">
+                        📊
+                      </div>
+                      <p className="text-sm font-medium">No positive balance available</p>
+                      <p className="text-xs opacity-60">Accounts with ₹0 or less aren't shown</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
