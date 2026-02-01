@@ -118,7 +118,6 @@ const Dashboard = () => {
 
         // Carryover Logic: If looking at a month and no carryover exists, check previous month
         const hasCarryover = (incomeData || []).some(inc => inc.source_id === sources?.id);
-        const isCurrentMonth = new Date().getFullYear() === currentYear && (new Date().getMonth() + 1) === currentMonth;
 
         if (!hasCarryover && sources) {
           const prevMonth = currentMonth === 1 ? 12 : currentMonth - 1;
