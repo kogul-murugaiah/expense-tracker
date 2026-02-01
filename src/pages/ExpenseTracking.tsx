@@ -104,11 +104,13 @@ const ExpenseTracking = () => {
             if (viewMode === "monthly") {
                 const [year, month] = selectedMonth.split("-").map(Number);
                 startDate = `${year}-${String(month).padStart(2, "0")}-01`;
-                endDate = new Date(year, month, 0).toISOString().split("T")[0];
+                const nextMonth = month === 12 ? 1 : month + 1;
+                const nextYear = month === 12 ? year + 1 : year;
+                endDate = `${nextYear}-${String(nextMonth).padStart(2, "0")}-01`;
             } else {
                 const year = Number(selectedYear);
                 startDate = `${year}-01-01`;
-                endDate = `${year}-12-31`;
+                endDate = `${year + 1}-01-01`;
             }
 
             const { data, error } = await supabase
@@ -128,7 +130,7 @@ const ExpenseTracking = () => {
         `)
                 .eq("user_id", user.id)
                 .gte("date", startDate)
-                .lte("date", endDate)
+                .lt("date", endDate)
                 .order("date", { ascending: false });
 
             if (error) throw error;

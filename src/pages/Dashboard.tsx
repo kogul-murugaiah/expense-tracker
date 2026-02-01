@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 // import Footer from "../components/Footer"; // Footer is in App layout now? No, App.tsx has MobileBottomNav but Footer is likely for Landing Page. Keeping it out of Dashboard for clean look? Or keep it?
 // Let's keep Footer for now if it was there, but typically Dashboard doesn't have a big footer. 
@@ -41,6 +41,11 @@ const currencyFormatter = new Intl.NumberFormat("en-IN", {
 
 const COLORS = ["#3b82f6", "#8b5cf6", "#ec4899", "#14b8a6", "#f59e0b"];
 
+const MONTH_NAMES = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
 const Dashboard = () => {
   const { accountTypes } = useAccountTypes();
   const [income, setIncome] = useState<Income[]>([]);
@@ -49,9 +54,8 @@ const Dashboard = () => {
   const [error, setError] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
 
-  const now = useMemo(() => new Date(), []);
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth() + 1;
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -74,9 +78,26 @@ const Dashboard = () => {
         const nextYear = currentMonth === 12 ? currentYear + 1 : currentYear;
         const endDate = `${nextYear}-${String(nextMonth).padStart(2, "0")}-01`;
 
+        // Fetch income sources to find/create "Balance Carryover"
+        let { data: sources } = await supabase
+          .from("income_sources")
+          .select("id, name")
+          .eq("user_id", user.id)
+          .eq("name", "Balance Carryover")
+          .single();
+
+        if (!sources) {
+          const { data: newSource, error: createError } = await supabase
+            .from("income_sources")
+            .insert({ name: "Balance Carryover", user_id: user.id })
+            .select()
+            .single();
+          if (!createError) sources = newSource;
+        }
+
         const { data: incomeData, error: incomeError } = await supabase
           .from("income")
-          .select("id, amount, date, account_type")
+          .select("id, amount, date, account_type, source_id")
           .eq("user_id", user.id)
           .gte("date", startDate)
           .lt("date", endDate);
@@ -94,6 +115,46 @@ const Dashboard = () => {
 
         setIncome(incomeData || []);
         setExpenses(expenseData || []);
+
+        // Carryover Logic: If looking at a month and no carryover exists, check previous month
+        const hasCarryover = (incomeData || []).some(inc => inc.source_id === sources?.id);
+        const isCurrentMonth = new Date().getFullYear() === currentYear && (new Date().getMonth() + 1) === currentMonth;
+
+        if (!hasCarryover && sources) {
+          const prevMonth = currentMonth === 1 ? 12 : currentMonth - 1;
+          const prevYear = currentMonth === 1 ? currentYear - 1 : currentYear;
+          const prevStart = `${prevYear}-${String(prevMonth).padStart(2, "0")}-01`;
+          const prevEnd = startDate;
+
+          const { data: prevInc } = await supabase.from("income").select("amount, account_type").eq("user_id", user.id).gte("date", prevStart).lt("date", prevEnd);
+          const { data: prevExp } = await supabase.from("expenses").select("amount, account_type").eq("user_id", user.id).gte("date", prevStart).lt("date", prevEnd);
+
+          const carries: any[] = [];
+          accountTypes.forEach(acc => {
+            const bal = (prevInc || []).filter(i => i.account_type === acc).reduce((s, i) => s + i.amount, 0) -
+              (prevExp || []).filter(e => e.account_type === acc).reduce((s, e) => s + e.amount, 0);
+            if (bal > 0) {
+              carries.push({
+                user_id: user.id,
+                amount: bal,
+                date: startDate,
+                account_type: acc,
+                source_id: sources.id,
+                description: `Auto-carryover from ${MONTH_NAMES[prevMonth - 1]} ${prevYear}`
+              });
+            }
+          });
+
+          if (carries.length > 0) {
+            const { error: insertError } = await supabase.from("income").insert(carries);
+            if (!insertError) {
+              // Re-fetch current month data
+              const { data: newIncome } = await supabase.from("income").select("id, amount, date, account_type, source_id").eq("user_id", user.id).gte("date", startDate).lt("date", endDate);
+              setIncome(newIncome || []);
+            }
+          }
+        }
+
       } catch (err: any) {
         setError(err.message || "Failed to fetch data");
       } finally {
@@ -102,7 +163,7 @@ const Dashboard = () => {
     };
 
     fetchData();
-  }, [currentYear, currentMonth]);
+  }, [currentYear, currentMonth, accountTypes]);
 
   const monthlyIncome = income.reduce((sum, inc) => sum + inc.amount, 0);
   const monthlyExpenses = expenses.reduce((sum, exp) => sum + exp.amount, 0);
@@ -134,11 +195,25 @@ const Dashboard = () => {
     .filter(a => a.balance > 0)
     .map(a => ({ name: a.accountType, value: a.balance }));
 
-  const monthNames = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December",
-  ];
-  const currentMonthName = monthNames[currentMonth - 1];
+  const currentMonthName = MONTH_NAMES[currentMonth - 1];
+
+  const handlePrevMonth = () => {
+    if (currentMonth === 1) {
+      setCurrentMonth(12);
+      setCurrentYear(prev => prev - 1);
+    } else {
+      setCurrentMonth(prev => prev - 1);
+    }
+  };
+
+  const handleNextMonth = () => {
+    if (currentMonth === 12) {
+      setCurrentMonth(1);
+      setCurrentYear(prev => prev + 1);
+    } else {
+      setCurrentMonth(prev => prev + 1);
+    }
+  };
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -147,11 +222,37 @@ const Dashboard = () => {
     return "Good evening";
   };
 
+  const [syncing, setSyncing] = useState(false);
+  const handleSyncCarryover = async () => {
+    setSyncing(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data: source } = await supabase.from("income_sources").select("id").eq("user_id", user.id).eq("name", "Balance Carryover").single();
+      if (!source) return;
+
+      const startDate = `${currentYear}-${String(currentMonth).padStart(2, "0")}-01`;
+
+      // Remove existing carryover for this month
+      await supabase.from("income").delete().eq("user_id", user.id).eq("source_id", source.id).eq("date", startDate);
+
+      // Trigger re-fetch which will re-apply carryover
+      setCurrentMonth(prev => prev); // dummy state update to trigger useEffect? better to just call a fetch function
+      // Actually, let's just reload
+      window.location.reload();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   return (
     <div className="pb-24 pt-8 md:pb-8">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Header / Greeting */}
-        <header className="mb-8 animate-fade-in">
+        <header className="mb-8 animate-fade-in flex flex-col md:flex-row md:items-end md:justify-between gap-6">
           <div className="flex flex-col gap-1">
             <p className="text-slate-400 font-medium text-sm uppercase tracking-wider">Overview</p>
             <h1 className="text-4xl font-bold font-heading text-white">
@@ -160,6 +261,52 @@ const Dashboard = () => {
             <p className="text-slate-400 mt-1">
               Here's your financial summary for <span className="text-white font-semibold">{currentMonthName} {currentYear}</span>
             </p>
+            <button
+              onClick={handleSyncCarryover}
+              disabled={syncing}
+              className="mt-2 text-xs font-bold text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-1.5 opacity-60 hover:opacity-100 disabled:opacity-30"
+            >
+              <svg className={`${syncing ? "animate-spin" : ""}`} xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" /><path d="M16 16h5v5" /></svg>
+              {syncing ? "Syncing..." : "Sync Balance Carryover"}
+            </button>
+          </div>
+
+          {/* Month Picker UI */}
+          <div className="flex items-center gap-2 bg-slate-800/40 p-1.5 rounded-2xl border border-white/5 backdrop-blur-md self-start md:self-auto">
+            <button
+              onClick={handlePrevMonth}
+              className="p-2 hover:bg-white/10 rounded-xl transition-colors text-slate-400 hover:text-white"
+              title="Previous Month"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6" /></svg>
+            </button>
+
+            <div className="flex items-center gap-2 px-2">
+              <select
+                value={currentMonth}
+                onChange={(e) => setCurrentMonth(parseInt(e.target.value))}
+                className="bg-transparent text-white font-semibold focus:outline-none appearance-none cursor-pointer hover:text-blue-400 transition-colors"
+              >
+                {MONTH_NAMES.map((name, i) => (
+                  <option key={name} value={i + 1} className="bg-slate-900 text-white">{name}</option>
+                ))}
+              </select>
+              <span className="text-slate-600">/</span>
+              <input
+                type="number"
+                value={currentYear}
+                onChange={(e) => setCurrentYear(parseInt(e.target.value))}
+                className="bg-transparent text-white font-semibold w-16 focus:outline-none hover:text-blue-400 transition-colors"
+              />
+            </div>
+
+            <button
+              onClick={handleNextMonth}
+              className="p-2 hover:bg-white/10 rounded-xl transition-colors text-slate-400 hover:text-white"
+              title="Next Month"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+            </button>
           </div>
         </header>
 
